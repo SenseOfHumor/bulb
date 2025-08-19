@@ -7,6 +7,7 @@ import TiltedCard from './components/TiltedCard'
 import AboutSection from './components/AboutSection';
 import CallToAction from './components/CallToAction';
 import { RoadmapTreeGraph } from './components/RoadmapTreeGraph';
+import PricingSection from './components/PricingSection';
 
 export default function App() {
   const features = [
@@ -113,8 +114,8 @@ export default function App() {
                 title="From noise to signal."
                 subtitle={
                   <>
-                    We extract actions, compile research, and reveal connections.{' '}
-                    <span className="inline-block rounded-full bg-[rgba(65,105,225,0.35)] text-white/80 px-2 py-0.5 text-xs font-medium shadow-sm align-middle">fast af</span>
+                    Extract actions, compile research, and reveal connections.{' '}
+                    <span className="inline-block rounded-full bg-[rgba(65,105,225,0.35)] text-white/80 px-2 py-0.5 text-xs font-medium shadow-sm align-middle">Fast AF</span>
                   </>
                 }
                 blurb="Built for researchers, journalists, field agents, students or ANYONE who need verifiable truth."
@@ -134,18 +135,20 @@ export default function App() {
           <section id="call to action" className="section">
             <div className="section-content">
               <CallToAction
-        eyebrow="Built for truth-seekers"
-        title="Your transcript → action, research, graph."
-        subtitle="Spin up a brief with citations in minutes."
-        primary={{ label: "Try the Demo", href: "#demo" }}
-        secondary={{ label: "Pricing", href: "#pricing" }}
-        bullets={[
-          "Source-linked statements",
-          "Interactive knowledge graph",
-          "Export to PDF/Markdown",
-        ]}
-        showEmail={false} // flip true to show the email field
-      />
+                eyebrow="Built for truth-seekers"
+                title="Your transcript → action, research, graph."
+                subtitle="Spin up a brief with citations in minutes."
+                primary={{ label: "Try the Demo", href: "#demo" }}
+                secondary={{ label: "Pricing", href: "#pricing" }}
+                bullets={[
+                  "Source-linked statements",
+                  "Interactive knowledge graph",
+                  "Export to PDF/Markdown",
+                ]}
+                showEmail={false} // flip true to show the email field
+              />
+
+              <PricingSection className="mt-10" />
             </div>
           </section>
           

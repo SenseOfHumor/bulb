@@ -619,7 +619,7 @@ export function RoadmapTreeGraph({
       <svg ref={svgRef} className="h-[560px] w-full select-none">
         <g ref={gRef} />
       </svg>
-      <p className="mt-2 text-[11px] text-white/45">CTRL/CMD + Scroll to zoom. Drag to pan. Click a node to expand/collapse.</p>
+      <p className="mt-2 text-[11px] text-white/45">CTRL/CMD + Scroll or pinch to zoom. Drag to pan. Click a node to expand/collapse.</p>
     </div>
   );
 }
