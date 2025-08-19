@@ -177,9 +177,8 @@ export default function Footer({
         </div>
 
         {/* bottom bar */}
-        <div className="mt-10 flex flex-col-reverse items-start justify-between gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-center">
-          <p className="text-xs text-white/60">© {year} {brand.name}. All rights reserved.</p>
-          <div className="flex flex-wrap items-center gap-4">
+        <div className="mt-10 flex flex-col items-center justify-center gap-4 border-t border-white/10 pt-6 text-center">
+          <div className="flex flex-wrap items-center justify-center gap-4">
             {legal.map((l) => (
               <a key={l.label} href={l.href} className="text-xs text-white/70 hover:text-white">
                 {l.label}
@@ -193,6 +192,7 @@ export default function Footer({
               ↑ Back to top
             </a>
           </div>
+          <p className="text-xs text-white/60">© {year} {brand.name}. All rights reserved.</p>
         </div>
       </div>
     </footer>
