@@ -338,8 +338,24 @@ export function RoadmapTreeGraph({
     const w = bbox.width || svgRef.current.parentElement?.clientWidth || 900;
     svg.attr("viewBox", [0, 0, w, height]).attr("role", "img");
 
-    // zoom/pan
-    const zoom = d3.zoom().scaleExtent([0.5, 2.4]).on("zoom", (e) => container.attr("transform", e.transform));
+    // zoom/pan - mobile friendly: only allow zoom with pinch or when actively dragging
+    const zoom = d3.zoom()
+      .scaleExtent([0.5, 2.4])
+      .filter((event) => {
+        // Allow zoom only if:
+        // 1. It's a wheel event with Ctrl key (desktop zoom)
+        // 2. It's a touch event with multiple touches (mobile pinch)
+        // 3. It's a mousedown event (drag to pan)
+        if (event.type === 'wheel') {
+          return event.ctrlKey || event.metaKey;
+        }
+        if (event.type === 'touchstart') {
+          return event.touches.length > 1;
+        }
+        return event.type === 'mousedown';
+      })
+      .on("zoom", (e) => container.attr("transform", e.transform));
+    
     svg.call(zoom).on("dblclick.zoom", null);
 
     // defs: gradient + shadow + glow
@@ -603,7 +619,7 @@ export function RoadmapTreeGraph({
       <svg ref={svgRef} className="h-[560px] w-full select-none">
         <g ref={gRef} />
       </svg>
-      <p className="mt-2 text-[11px] text-white/45">Scroll to zoom. Drag to pan. Click a node to expand/collapse.</p>
+      <p className="mt-2 text-[11px] text-white/45">CTRL/CMD + Scroll to zoom. Drag to pan. Click a node to expand/collapse.</p>
     </div>
   );
 }
