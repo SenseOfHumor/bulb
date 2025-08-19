@@ -1,42 +1,161 @@
+@import url('https://cdn.jsdelivr.net/npm/@geist-ui/font@latest/geist-font.css');
+
+body, html {
+  font-family: 'Geist', 'Geist Mono', sans-serif;
+  overflow-x: hidden !important;
+  width: 100%;
+}
 #root {
-  max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
   text-align: center;
+  width: 100%;
+  overflow-x: hidden !important;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000000;
+  color: white;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  overflow-x: hidden !important;
+  width: 100%;
+  max-width: 100vw;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+* {
+  box-sizing: border-box;
+}
+
+.section {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1000px, 90%);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.section:last-of-type::after {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .section {
+    padding: 2rem;
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+.section-content {
+  max-width: 1000px;
+  width: 100%;
+}
+
+.footer-container {
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .footer-container {
+    padding: 2rem;
   }
+}
+
+.section h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+  margin-bottom: 2rem;
 }
 
 .card {
   padding: 2em;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin: 2rem auto;
+  max-width: 400px;
 }
 
-.read-the-docs {
-  color: #888;
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.project-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.project-card h3 {
+  margin-bottom: 1rem;
+  color: #A9FF5B;
+}
+
+.contact-info {
+  margin-top: 2rem;
+}
+
+.contact-info p {
+  margin: 1rem 0;
+  font-size: 1.1em;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  color: white;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+button:hover {
+  border-color: #A9FF5B;
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Mobile padding to account for navbar */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 70px;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
 }
