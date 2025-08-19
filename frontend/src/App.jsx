@@ -8,6 +8,10 @@ import AboutSection from './components/AboutSection';
 import CallToAction from './components/CallToAction';
 import { RoadmapTreeGraph } from './components/RoadmapTreeGraph';
 import PricingSection from './components/PricingSection';
+import Footer from './components/Footer';
+import image from "/fixmynotes-ring.svg";
+
+const fixmynotes = <img src={image} alt="Fix My Notes" />;
 
 export default function App() {
   const features = [
@@ -73,7 +77,7 @@ export default function App() {
           <section id="home" className="section">
             <div className="section-content">
               <h1>
-                <span className="text-4xl font-bold text-zinc-100">BULB</span>
+                <span className="text-4xl font-bold text-zinc-100">FIXMYNOTES</span>
               </h1>
               <div className='section-content flex flex-col md:flex-row items-center justify-center gap-8'>
                 <ScrambledText
@@ -86,9 +90,9 @@ export default function App() {
                     The amount of search is not a measure of the amount of intelligence being exhibited. What makes a problem a problem is not that a large amount of search is required for its solution, but that a large amount would be required if a requisite level of intelligence were not applied.
                   </ScrambledText>
                   <TiltedCard
-                    imageSrc="https://www.onthisday.com/images/people/allen-newell.jpg?w=360"
-                    altText="Allen Newell"
-                    captionText="Allen Newell Computer Scientist"
+                    imageSrc={image}
+                    altText="TRACE"
+                    captionText="Meet TRACE - your AI research assistant"
                     containerHeight="300px"
                     containerWidth="300px"
                     imageHeight="300px"
@@ -100,7 +104,7 @@ export default function App() {
                     displayOverlayContent={true}
                     overlayContent={
                       <p className="tilted-card-demo-text">
-                        Allen Newell - Computer Scientist
+                        Meet TRACE - your AI research assistant
                       </p>
                     }
                   />
@@ -158,6 +162,7 @@ export default function App() {
               <p>Contact info goes here.</p>
             </div>
           </section>
+          <Footer className="mt-24" />
         </main>
       </div>
     </div>

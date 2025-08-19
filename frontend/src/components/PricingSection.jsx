@@ -147,7 +147,7 @@ export default function PricingSection({
           Simple, fair pricing for real research
         </h2>
         <p className="mt-3 text-white/70">
-          comes with NewellAI for help with your research.
+          comes with TRACE AI for help with your research.
         </p>
 
         {showToggle && (
@@ -212,7 +212,7 @@ export default function PricingSection({
         ))}
       </div>
 
-      <p className="mt-6 text-left text-xs text-white/60">
+      <p className="mt-6 text-center text-xs text-white/60">
         {eduNotice}. Transactions are non-refundable and processed securely.
       </p>
     </section>

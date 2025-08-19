@@ -1,5 +1,8 @@
 import { useRef, useState } from "react";
 import { motion, useMotionValue, useSpring } from "motion/react";
+import image from "/fixmynotes-ring.svg";
+
+const fixmynotes = <img src={image} alt="Fix My Notes" />;
 
 const springValues = {
   damping: 30,
