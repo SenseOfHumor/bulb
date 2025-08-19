@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1320" height="768" viewBox="0 0 1320 768" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Layered glow for crisp neon-like edge + soft bloom -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#FFFFFF" flood-opacity="1"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#FFFFFF" flood-opacity="0.8"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#FFFFFF" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#000000"/>
+
+  <!-- Centered Text -->
+  <text x="50%" y="50%"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        font-family="Inter, Poppins, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 'Apple Color Emoji','Segoe UI Emoji', sans-serif"
+        font-weight="800"
+        font-size="120"
+        fill="#FFFFFF"
+        letter-spacing="1"
+        filter="url(#glow)">
+    BULB.io
+  </text>
+</svg>
