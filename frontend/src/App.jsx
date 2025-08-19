@@ -51,7 +51,7 @@ export default function App() {
                     rotateAmplitude={12}
                     scaleOnHover={1.2}
                     showMobileWarning={false}
-                    showTooltip={true}
+                    showTooltip={false}
                     displayOverlayContent={true}
                     overlayContent={
                       <p className="tilted-card-demo-text">

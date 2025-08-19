@@ -21,7 +21,7 @@ export default function TiltedCard({
   scaleOnHover = 1.1,
   rotateAmplitude = 14,
   showMobileWarning = true,
-  showTooltip = true,
+  showTooltip = false,
   overlayContent = null,
   displayOverlayContent = false,
 }) {
