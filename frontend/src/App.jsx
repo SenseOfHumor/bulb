@@ -1,4 +1,3 @@
-import { Section } from "lucide-react"
 import Beams from "./components/Beams"
 import Navbar from "./components/Navbar";
 
