@@ -6,6 +6,7 @@ import ScrambledText from './components/ScrambledText';
 import TiltedCard from './components/TiltedCard'
 import AboutSection from './components/AboutSection';
 import CallToAction from './components/CallToAction';
+import { RoadmapTreeGraph } from './components/RoadmapTreeGraph';
 
 export default function App() {
   const features = [
@@ -25,6 +26,29 @@ export default function App() {
       image: "https://picsum.photos/id/1005/800/600",
     },
   ];
+
+  const actionsMap = {
+    title: "Investigation Plan",
+    children: [
+      { title: "Ingest transcript" },
+      {
+        title: "Extract action items",
+        children: [{ title: "Assign owners" }, { title: "Set due dates" }],
+      },
+      {
+        title: "Research & verify",
+        children: [
+          { title: "Collect citations from source A/B" },
+          { title: "Cross-source check conflicting claims" },
+        ],
+      },
+      {
+        title: "Build knowledge graph",
+        collapsed: true, // start collapsed (optional)
+        children: [{ title: "People & orgs" }, { title: "Claims & evidence" }],
+      },
+    ],
+  };
 
   return (
     <div className="w-full overflow-x-hidden">
@@ -96,6 +120,15 @@ export default function App() {
                 blurb="Built for researchers, journalists, field agents, students or ANYONE who need verifiable truth."
                 features={features}
               />
+                      <RoadmapTreeGraph
+          data={actionsMap}
+          // tweak card sizing if you like (width, minHeight, corner radius)
+          node={{ width: 220, height: 52, rx: 12 }}
+          className="mt-2"
+          onNodeClick={(node) => console.log("Clicked:", node)}
+          // always top-down (orientation is enforced inside the component)
+        />
+
             </div>
           </section>
           <section id="call to action" className="section">
@@ -115,6 +148,7 @@ export default function App() {
       />
             </div>
           </section>
+          
           <section id="contact" className="section">
             <div className="section-content">
               <h2>Contact</h2>
