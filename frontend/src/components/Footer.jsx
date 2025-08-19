@@ -195,12 +195,6 @@ export default function Footer({
           </div>
         </div>
       </div>
-
-      {/* soft glow bottom */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 -bottom-24 h-48 bg-[radial-gradient(60%_50%_at_50%_100%,rgba(75,104,255,0.25),transparent_70%)]"
-      />
     </footer>
   );
 }
