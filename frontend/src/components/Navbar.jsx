@@ -89,12 +89,12 @@ export default function Navbar() {
           "w-full md:w-[var(--nav-w)] md:max-w-[1280px] md:mx-auto",
           // transitions
           "transition-all duration-500",
-          // default (transparent, no blur/border)
+          // Mobile only: always blurred
+          "max-md:bg-white/10 max-md:border max-md:border-white/15 max-md:backdrop-blur-xl max-md:rounded-t-xl",
+          // Desktop: original behavior
           !isScrolling
-            ? "bg-transparent border border-transparent backdrop-blur-0 rounded-none md:rounded-none"
-            // scrolled (glassmorphism pill on desktop, rounded top on mobile)
-            : "bg-white/10 border border-white/15 backdrop-blur-xl " +
-              "rounded-t-xl md:rounded-full"
+            ? "md:bg-transparent md:border md:border-transparent md:backdrop-blur-0 md:rounded-none"
+            : "md:bg-white/10 md:border md:border-white/15 md:backdrop-blur-xl md:rounded-full"
         ].join(" ")}
       >
         <div className="px-3 py-3 md:px-6 md:py-3">
