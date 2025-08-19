@@ -5,6 +5,7 @@ import DecryptedText from './components/DecryptedText';
 import ScrambledText from './components/ScrambledText';
 import TiltedCard from './components/TiltedCard'
 import AboutSection from './components/AboutSection';
+import CallToAction from './components/CallToAction';
 
 export default function App() {
   const features = [
@@ -99,8 +100,19 @@ export default function App() {
           </section>
           <section id="call to action" className="section">
             <div className="section-content">
-              <h2>Call to Action</h2>
-              <p>Encourage users to take action.</p>
+              <CallToAction
+        eyebrow="Built for truth-seekers"
+        title="Your transcript → action, research, graph."
+        subtitle="Spin up a brief with citations in minutes."
+        primary={{ label: "Try the Demo", href: "#demo" }}
+        secondary={{ label: "Pricing", href: "#pricing" }}
+        bullets={[
+          "Source-linked statements",
+          "Interactive knowledge graph",
+          "Export to PDF/Markdown",
+        ]}
+        showEmail={false} // flip true to show the email field
+      />
             </div>
           </section>
           <section id="contact" className="section">
