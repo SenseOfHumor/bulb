@@ -28,10 +28,11 @@ export default function TiltedCard({
   const ref = useRef(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const rotateX = useSpring(useMotionValue(0), springValues);
-  const rotateY = useSpring(useMotionValue(0), springValues);
-  const scale = useSpring(1, springValues);
-  const opacity = useSpring(0);
+  // Default tilted state: slightly backwards (-8) and right (12)
+  const rotateX = useSpring(useMotionValue(18), springValues);
+  const rotateY = useSpring(useMotionValue(12), springValues);
+  const scale = useSpring(scaleOnHover, springValues); // Start with hover scale
+  const opacity = useSpring(1); // Start with overlay visible
   const rotateFigcaption = useSpring(0, {
     stiffness: 350,
     damping: 30,
@@ -62,15 +63,15 @@ export default function TiltedCard({
   }
 
   function handleMouseEnter() {
-    scale.set(scaleOnHover);
+    scale.set(scaleOnHover * 1.05); // Slightly more scale on hover
     opacity.set(1);
   }
 
   function handleMouseLeave() {
-    opacity.set(0);
-    scale.set(1);
-    rotateX.set(0);
-    rotateY.set(0);
+    opacity.set(1); // Keep overlay visible
+    scale.set(scaleOnHover); // Return to default hover scale
+    rotateX.set(-8); // Return to default backwards tilt
+    rotateY.set(12); // Return to default right tilt
     rotateFigcaption.set(0);
   }
 
