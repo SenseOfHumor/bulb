@@ -7,31 +7,28 @@ const springValues = {
   mass: 2,
 };
 
-const defaultRotateX = -8; // negative tilts back, positive tilts forward
-const defaultRotateY = 8;  // positive tilts right, negative tilts left
-
 export default function TiltedCard({
   imageSrc,
   altText = "Tilted card image",
   captionText = "",
-  containerHeight = "200px",
+  containerHeight = "300px",
   containerWidth = "100%",
   imageHeight = "300px",
   imageWidth = "300px",
   scaleOnHover = 1.1,
   rotateAmplitude = 14,
   showMobileWarning = true,
-  showTooltip = false,
+  showTooltip = true,
   overlayContent = null,
   displayOverlayContent = false,
 }) {
   const ref = useRef(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const rotateX = useSpring(useMotionValue(defaultRotateX), springValues);
-  const rotateY = useSpring(useMotionValue(defaultRotateY), springValues);
-  const scale = useSpring(scaleOnHover, springValues);
-  const opacity = useSpring(1, springValues);
+  const rotateX = useSpring(useMotionValue(0), springValues);
+  const rotateY = useSpring(useMotionValue(0), springValues);
+  const scale = useSpring(1, springValues);
+  const opacity = useSpring(0);
   const rotateFigcaption = useSpring(0, {
     stiffness: 350,
     damping: 30,

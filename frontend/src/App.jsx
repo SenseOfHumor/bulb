@@ -3,9 +3,28 @@ import Beams from "./components/Beams"
 import Navbar from "./components/Navbar";
 import DecryptedText from './components/DecryptedText';
 import ScrambledText from './components/ScrambledText';
-import TiltedCard from './components/TiltedCard';
+import TiltedCard from './components/TiltedCard'
+import AboutSection from './components/AboutSection';
 
 export default function App() {
+  const features = [
+    {
+      title: "Extract Actionable Items",
+      text: "Confused where to start? Let us help you get started",
+      image: "https://picsum.photos/id/1011/800/600",
+    },
+    {
+      title: "Research Packs",
+      text: "Auto‑research with quotes, dates, and direct URLs.",
+      image: "https://picsum.photos/id/1015/800/600",
+    },
+    {
+      title: "Knowledge Graph",
+      text: "People ↔ orgs ↔ claims ↔ evidence — all linked.",
+      image: "https://picsum.photos/id/1005/800/600",
+    },
+  ];
+
   return (
     <div className="w-full overflow-x-hidden">
       {/* Persistent background */}
@@ -64,8 +83,24 @@ export default function App() {
           </section>
           <section id="about" className="section">
             <div className="section-content">
-              <h2>About</h2>
-              <p>About content goes here.</p>
+              <AboutSection
+                eyebrow="About BULB"
+                title="From noise to signal."
+                subtitle={
+                  <>
+                    We extract actions, compile research, and reveal connections.{' '}
+                    <span className="inline-block rounded-full bg-[rgba(65,105,225,0.35)] text-white/80 px-2 py-0.5 text-xs font-medium shadow-sm align-middle">fast af</span>
+                  </>
+                }
+                blurb="Built for researchers, journalists, field agents, students or ANYONE who need verifiable truth."
+                features={features}
+              />
+            </div>
+          </section>
+          <section id="call to action" className="section">
+            <div className="section-content">
+              <h2>Call to Action</h2>
+              <p>Encourage users to take action.</p>
             </div>
           </section>
           <section id="contact" className="section">
