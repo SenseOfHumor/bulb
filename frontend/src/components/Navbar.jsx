@@ -19,9 +19,8 @@ export default function Navbar() {
 
   // Environment-aware URLs for Clerk redirects
   const isProduction = window.location.hostname.includes('github.io');
-  // For development, don't include /bulb prefix since Router basename handles it
-  // For production, include /bulb prefix since we need absolute URLs for Clerk redirects
-  const afterSignInUrl = isProduction ? '/bulb/dashboard' : '/dashboard';
+  const baseUrl = isProduction ? '/bulb' : '';
+  const afterSignInUrl = `${baseUrl}/dashboard`;
   const afterSignOutUrl = isProduction ? '/bulb/' : '/';
 
   // Navigation items for signed-out users (landing page)
