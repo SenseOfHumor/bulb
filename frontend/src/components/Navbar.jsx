@@ -17,6 +17,13 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Environment-aware URLs for Clerk redirects
+  const isProduction = window.location.hostname.includes('github.io');
+  // For development, don't include /bulb prefix since Router basename handles it
+  // For production, include /bulb prefix since we need absolute URLs for Clerk redirects
+  const afterSignInUrl = isProduction ? '/bulb/dashboard' : '/dashboard';
+  const afterSignOutUrl = isProduction ? '/bulb/' : '/';
+
   // Navigation items for signed-out users (landing page)
   const landingNavItems = [
     { label: "Home", href: "#home", icon: (
@@ -232,8 +239,8 @@ export default function Navbar() {
               <li className="hidden md:flex md:gap-4">
                 <SignInButton 
                   mode="modal"
-                  afterSignInUrl="/dashboard"
-                  afterSignUpUrl="/dashboard"
+                  afterSignInUrl={afterSignInUrl}
+                  afterSignUpUrl={afterSignInUrl}
                 >
                   <button className="px-3 py-1 text-sm text-white/70 hover:text-white transition-colors whitespace-nowrap">
                     Sign In
@@ -241,8 +248,8 @@ export default function Navbar() {
                 </SignInButton>
                 <SignUpButton 
                   mode="modal"
-                  afterSignInUrl="/dashboard"
-                  afterSignUpUrl="/dashboard"
+                  afterSignInUrl={afterSignInUrl}
+                  afterSignUpUrl={afterSignInUrl}
                 >
                   <button className="px-3 py-1 text-sm bg-sky-500 hover:bg-sky-600 text-white rounded-full transition-colors whitespace-nowrap">
                     Sign Up
@@ -254,8 +261,8 @@ export default function Navbar() {
               <li className="flex-1 md:hidden">
                 <SignInButton 
                   mode="modal"
-                  afterSignInUrl="/dashboard"
-                  afterSignUpUrl="/dashboard"
+                  afterSignInUrl={afterSignInUrl}
+                  afterSignUpUrl={afterSignInUrl}
                 >
                   <button className="flex flex-col items-center gap-1 text-white/70 hover:text-white transition-colors">
                     <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
@@ -271,7 +278,8 @@ export default function Navbar() {
               {/* Desktop User Button */}
               <li className="hidden md:block">
                 <UserButton 
-                  afterSignOutUrl="/"
+                  // Environment-aware sign out URL  
+                  afterSignOutUrl={afterSignOutUrl}
                   appearance={{
                     elements: {
                       avatarBox: "w-8 h-8"
@@ -284,7 +292,8 @@ export default function Navbar() {
               <li className="flex-1 md:hidden">
                 <div className="flex flex-col items-center gap-1 text-white/70 hover:text-white transition-colors">
                   <UserButton 
-                    afterSignOutUrl="/"
+                    // Environment-aware sign out URL
+                    afterSignOutUrl={afterSignOutUrl}
                     appearance={{
                       elements: {
                         avatarBox: "w-6 h-6"
