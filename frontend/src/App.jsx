@@ -11,6 +11,7 @@ import PricingSection from './components/PricingSection';
 import Footer from './components/Footer';
 import image from "/fixmynotes-ring.svg";
 import ActionPlanFlow from './components/ActionPlanFlow';
+import RecursiveFlow from './components/RecursiveFlow';
 
 const fixmynotes = <img src={image} alt="Fix My Notes" />;
 
@@ -51,7 +52,18 @@ export default function App() {
       {
         title: "Build knowledge graph",
         collapsed: true, // start collapsed (optional)
-        children: [{ title: "People & orgs" }, { title: "Claims & evidence" }],
+        children: [
+          { title: "People & orgs" },
+          { title: "Claims & evidence" },
+          { title: "Knowledge graph" },
+          { title: "Other",
+            children: [
+              { title: "Sub-item 1" },
+              { title: "Sub-item 2" },
+            ],
+           }
+        ],
+
       },
     ],
   };
@@ -126,13 +138,10 @@ export default function App() {
                 blurb="Built for researchers, journalists, field agents, students or ANYONE who need verifiable truth."
                 features={features}
               />
-                      <RoadmapTreeGraph
+              <RecursiveFlow
           data={actionsMap}
-          // tweak card sizing if you like (width, minHeight, corner radius)
-          node={{ width: 220, height: 52, rx: 12 }}
-          className="mt-2"
-          onNodeClick={(node) => console.log("Clicked:", node)}
-          // always top-down (orientation is enforced inside the component)
+          direction="LR"            // or "LR"
+          initialCollapsedDepth={1} // collapse deeper-than-children by default (set null to honor flags)
         />
 
             </div>
@@ -161,7 +170,6 @@ export default function App() {
             <div className="section-content">
               <h2>Contact</h2>
               <p>Contact info goes here.</p>
-              <ActionPlanFlow />
             </div>
           </section>
           <Footer className="mt-24" />
