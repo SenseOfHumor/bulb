@@ -268,7 +268,44 @@ export default function RecursiveFlow({
           </div>
         </Panel> */}
 
-        <Controls showInteractive={false} className="!bg-slate-900/70 !text-white/80 !border-white/10" style={{ pointerEvents: 'auto' }} />
+        {/* Custom Glassmorphic Controls */}
+        <div className="absolute bottom-4 left-4 z-10" style={{ pointerEvents: 'auto' }}>
+          <div className="flex flex-col gap-1 p-1 rounded-2xl bg-gradient-to-b from-white/30 to-white/5 shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_6px_30px_rgba(0,0,0,0.25)] backdrop-blur-md">
+            <button
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-white/80 hover:bg-white/10 hover:text-white transition-all ring-1 ring-white/10"
+              onClick={() => rf.current?.zoomIn()}
+              title="Zoom in"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+                <line x1="8" y1="11" x2="14" y2="11"/>
+                <line x1="11" y1="8" x2="11" y2="14"/>
+              </svg>
+            </button>
+            <button
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-white/80 hover:bg-white/10 hover:text-white transition-all ring-1 ring-white/10"
+              onClick={() => rf.current?.zoomOut()}
+              title="Zoom out"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+                <line x1="8" y1="11" x2="14" y2="11"/>
+              </svg>
+            </button>
+            <button
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-white/80 hover:bg-white/10 hover:text-white transition-all ring-1 ring-white/10"
+              onClick={() => rf.current?.fitView({ padding: 0.2, duration: 400 })}
+              title="Fit view"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
         <Background gap={24} size={1} className="opacity-60" />
       </ReactFlow>
     </div>

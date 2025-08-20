@@ -143,6 +143,15 @@ export default function PricingSection({
     <section className={`mx-auto max-w-6xl px-6 py-16 md:py-24 ${className}`}>
       {/* header */}
       <div className="text-center">
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/5 px-4 py-2 text-sm text-white/80 ring-1 ring-white/10">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="opacity-80">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            Pricing Plans
+          </div>
+        </div>
+        
         <h2 className="text-3xl md:text-4xl font-semibold text-white tracking-tight">
           Simple, fair pricing for real research
         </h2>

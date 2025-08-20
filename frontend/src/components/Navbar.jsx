@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+  useAuth,
+} from "@clerk/clerk-react";
 
 export default function Navbar() {
   const [active, setActive] = useState("home");
   const [isScrolling, setIsScrolling] = useState(false);
   const [navW, setNavW] = useState("100%"); // used by w-[var(--nav-w)]
+  const { isSignedIn } = useAuth();
 
   const navItems = [
     { label: "Home", href: "#home", icon: (
@@ -16,9 +25,9 @@ export default function Navbar() {
         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
       </svg>
     )},
-    { label: "Projects", href: "#projects", icon: (
+    { label: "Pricing", href: "#pricing", icon: (
       <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
-        <path d="M4 5V19H20V7H11.5858L9.58579 5H4ZM12.4142 5H21C21.5523 5 22 5.44772 22 6V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3H10.4142L12.4142 5Z"/>
+        <path d="M12 2C13.1 2 14 2.9 14 4V5H16C17.1 5 18 5.9 18 7V19C18 20.1 17.1 21 16 21H8C6.9 21 6 20.1 6 19V7C6 5.9 6.9 5 8 5H10V4C10 2.9 10.9 2 12 2ZM12 4V6H12V4ZM8 7V19H16V7H8ZM9 8H15V10H9V8ZM9 11H15V13H9V11ZM9 14H13V16H9V14Z"/>
       </svg>
     )},
     { label: "Contact", href: "#contact", icon: (
@@ -55,20 +64,29 @@ export default function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
 
-    // active section detection
-    const sections = document.querySelectorAll("section[id]");
-    const io = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && setActive(e.target.id)),
-      { threshold: 0.6 }
-    );
-    sections.forEach((s) => io.observe(s));
+    // active section detection - only for signed out users
+    if (!isSignedIn) {
+      const sections = document.querySelectorAll("section[id]");
+      const io = new IntersectionObserver(
+        (entries) => entries.forEach((e) => e.isIntersecting && setActive(e.target.id)),
+        { threshold: 0.6 }
+      );
+      sections.forEach((s) => io.observe(s));
 
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
-      io.disconnect();
-    };
-  }, []);
+      return () => {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onResize);
+        io.disconnect();
+      };
+    } else {
+      // For signed-in users, don't show active indicators
+      setActive("");
+      return () => {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onResize);
+      };
+    }
+  }, [isSignedIn]);
 
   const go = (e, href) => {
     e.preventDefault();
@@ -98,11 +116,12 @@ export default function Navbar() {
         ].join(" ")}
       >
         <div className="px-3 py-3 md:px-6 md:py-3">
-          <ul className="flex w-full items-center justify-between gap-6 md:justify-center md:gap-12">
+          <ul className="flex w-full items-center justify-between gap-4 md:justify-center md:gap-8">
+            {/* Main Navigation Items */}
             {navItems.map((item) => {
               const isActive = active === item.href.slice(1);
               return (
-                <li key={item.label} className="flex-1 md:flex-none">
+                <li key={item.label} className="flex-1 md:flex-none relative">
                   <a
                     href={item.href}
                     onClick={(e) => go(e, item.href)}
@@ -116,7 +135,7 @@ export default function Navbar() {
                     {/* active dot (desktop only) */}
                     <span
                       className={[
-                        "hidden md:block absolute -left-6 top-1/2 -translate-y-1/2",
+                        "hidden md:block absolute -left-4 top-1/2 -translate-y-1/2",
                         "h-2 w-2 rounded-full bg-sky-400",
                         "opacity-0 scale-0 transition-all duration-300",
                         isActive ? "opacity-100 scale-100" : ""
@@ -133,6 +152,62 @@ export default function Navbar() {
                 </li>
               );
             })}
+            
+            {/* Authentication Items */}
+            <SignedOut>
+              {/* Desktop Auth Items */}
+              <li className="hidden md:flex md:gap-4">
+                <SignInButton mode="modal">
+                  <button className="px-3 py-1 text-sm text-white/70 hover:text-white transition-colors whitespace-nowrap">
+                    Sign In
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button className="px-3 py-1 text-sm bg-sky-500 hover:bg-sky-600 text-white rounded-full transition-colors whitespace-nowrap">
+                    Sign Up
+                  </button>
+                </SignUpButton>
+              </li>
+              
+              {/* Mobile Auth Item */}
+              <li className="flex-1 md:hidden">
+                <SignInButton mode="modal">
+                  <button className="flex flex-col items-center gap-1 text-white/70 hover:text-white transition-colors">
+                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+                      <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 6.5V8.5L21 9ZM15 10.5V12.5L21 13V11L15 10.5ZM21 15V17L15 16.5V14.5L21 15ZM15 18.5V20.5L21 21V19L15 18.5ZM12 7C8.13 7 5 10.13 5 14S8.13 21 12 21S19 17.87 19 14S15.87 7 12 7ZM12 19C9.24 19 7 16.76 7 14S9.24 9 12 9S17 11.24 17 14S14.76 19 12 19Z"/>
+                    </svg>
+                    <span className="text-xs">Sign In</span>
+                  </button>
+                </SignInButton>
+              </li>
+            </SignedOut>
+            
+            <SignedIn>
+              {/* Desktop User Button */}
+              <li className="hidden md:block">
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8"
+                    }
+                  }}
+                />
+              </li>
+              
+              {/* Mobile User Item */}
+              <li className="flex-1 md:hidden">
+                <div className="flex flex-col items-center gap-1 text-white/70 hover:text-white transition-colors">
+                  <UserButton 
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-6 h-6"
+                      }
+                    }}
+                  />
+                  <span className="text-xs">Profile</span>
+                </div>
+              </li>
+            </SignedIn>
           </ul>
         </div>
       </nav>
