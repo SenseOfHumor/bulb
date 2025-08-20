@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   SignedIn,
   SignedOut,
@@ -13,8 +14,11 @@ export default function Navbar() {
   const [isScrolling, setIsScrolling] = useState(false);
   const [navW, setNavW] = useState("100%"); // used by w-[var(--nav-w)]
   const { isSignedIn } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const navItems = [
+  // Navigation items for signed-out users (landing page)
+  const landingNavItems = [
     { label: "Home", href: "#home", icon: (
       <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
         <path d="M21 20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V9.48907C3 9.18048 3.14247 8.88917 3.38606 8.69972L11.3861 2.47749C11.7472 2.19663 12.2528 2.19663 12.6139 2.47749L20.6139 8.69972C20.8575 8.88917 21 9.18048 21 9.48907V20ZM19 19V9.97815L12 4.53371L5 9.97815V19H19Z"/>
@@ -36,6 +40,33 @@ export default function Navbar() {
       </svg>
     )},
   ];
+
+  // Navigation items for signed-in users (app routes)
+  const appNavItems = [
+    { label: "Dashboard", to: "/dashboard", icon: (
+      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+        <path d="M21 20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V9.48907C3 9.18048 3.14247 8.88917 3.38606 8.69972L11.3861 2.47749C11.7472 2.19663 12.2528 2.19663 12.6139 2.47749L20.6139 8.69972C20.8575 8.88917 21 9.18048 21 9.48907V20ZM19 19V9.97815L12 4.53371L5 9.97815V19H19Z"/>
+      </svg>
+    )},
+    { label: "Upload", to: "/upload", icon: (
+      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+      </svg>
+    )},
+    { label: "Projects", to: "/projects", icon: (
+      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+        <path d="M12 2C13.1 2 14 2.9 14 4V5H16C17.1 5 18 5.9 18 7V19C18 20.1 17.1 21 16 21H8C6.9 21 6 20.1 6 19V7C6 5.9 6.9 5 8 5H10V4C10 2.9 10.9 2 12 2ZM12 4V6H12V4ZM8 7V19H16V7H8ZM9 8H15V10H9V8ZM9 11H15V13H9V11ZM9 14H13V16H9V14Z"/>
+      </svg>
+    )},
+    { label: "Assistant", to: "/assistant", icon: (
+      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+        <path d="M17.753,14a2.25,2.25,0,0,1,2.25,2.25v.755a2.25,2.25,0,0,1-2.25,2.25H6.247a2.25,2.25,0,0,1-2.25-2.25V16.25A2.25,2.25,0,0,1,6.247,14H7.5V12.747a4.5,4.5,0,1,1,9,0V14ZM9,12.747V14h6V12.747a3,3,0,1,0-6,0Z"/>
+      </svg>
+    )},
+  ];
+
+  // Choose navigation items based on auth state and route
+  const navItems = isSignedIn && location.pathname !== '/' ? appNavItems : landingNavItems;
 
   useEffect(() => {
     const maxScroll = 1000;
@@ -64,8 +95,8 @@ export default function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
 
-    // active section detection - only for signed out users
-    if (!isSignedIn) {
+    // active section detection - only for signed out users on landing page
+    if (!isSignedIn && location.pathname === '/') {
       const sections = document.querySelectorAll("section[id]");
       const io = new IntersectionObserver(
         (entries) => entries.forEach((e) => e.isIntersecting && setActive(e.target.id)),
@@ -78,15 +109,23 @@ export default function Navbar() {
         window.removeEventListener("resize", onResize);
         io.disconnect();
       };
+    } else if (isSignedIn) {
+      // For signed-in users, set active based on current route
+      const currentRoute = location.pathname.slice(1) || 'dashboard';
+      setActive(currentRoute);
+      return () => {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("resize", onResize);
+      };
     } else {
-      // For signed-in users, don't show active indicators
+      // For signed-out users not on landing page
       setActive("");
       return () => {
         window.removeEventListener("scroll", onScroll);
         window.removeEventListener("resize", onResize);
       };
     }
-  }, [isSignedIn]);
+  }, [isSignedIn, location.pathname]);
 
   const go = (e, href) => {
     e.preventDefault();
@@ -119,36 +158,70 @@ export default function Navbar() {
           <ul className="flex w-full items-center justify-between gap-4 md:justify-center md:gap-8">
             {/* Main Navigation Items */}
             {navItems.map((item) => {
-              const isActive = active === item.href.slice(1);
+              const isActive = isSignedIn 
+                ? active === item.to?.slice(1) // for routes like "/dashboard" -> "dashboard"
+                : active === item.href?.slice(1); // for anchors like "#home" -> "home"
+              
               return (
                 <li key={item.label} className="flex-1 md:flex-none relative">
-                  <a
-                    href={item.href}
-                    onClick={(e) => go(e, item.href)}
-                    className={[
-                      "group relative flex flex-col items-center gap-1 select-none",
-                      "text-white/70 hover:text-white transition-colors",
-                      "text-xs md:text-base",
-                      isActive ? "text-white" : ""
-                    ].join(" ")}
-                  >
-                    {/* active dot (desktop only) */}
-                    <span
+                  {item.to ? (
+                    // Router Link for authenticated users
+                    <Link
+                      to={item.to}
                       className={[
-                        "hidden md:block absolute -left-4 top-1/2 -translate-y-1/2",
-                        "h-2 w-2 rounded-full bg-sky-400",
-                        "opacity-0 scale-0 transition-all duration-300",
-                        isActive ? "opacity-100 scale-100" : ""
+                        "group relative flex flex-col items-center gap-1 select-none",
+                        "text-white/70 hover:text-white transition-colors",
+                        "text-xs md:text-base",
+                        isActive ? "text-white" : ""
                       ].join(" ")}
-                    />
-                    {/* icon (mobile) */}
-                    <span className="md:hidden flex items-center justify-center w-6 h-6">
-                      {item.icon}
-                    </span>
-                    {/* labels */}
-                    <span className="hidden md:inline-block">{item.label}</span>
-                    <span className="md:hidden block">{item.label}</span>
-                  </a>
+                    >
+                      {/* active dot (desktop only) */}
+                      <span
+                        className={[
+                          "hidden md:block absolute -left-4 top-1/2 -translate-y-1/2",
+                          "h-2 w-2 rounded-full bg-sky-400",
+                          "opacity-0 scale-0 transition-all duration-300",
+                          isActive ? "opacity-100 scale-100" : ""
+                        ].join(" ")}
+                      />
+                      {/* icon (mobile) */}
+                      <span className="md:hidden flex items-center justify-center w-6 h-6">
+                        {item.icon}
+                      </span>
+                      {/* labels */}
+                      <span className="hidden md:inline-block">{item.label}</span>
+                      <span className="md:hidden block">{item.label}</span>
+                    </Link>
+                  ) : (
+                    // Anchor link for landing page
+                    <a
+                      href={item.href}
+                      onClick={(e) => go(e, item.href)}
+                      className={[
+                        "group relative flex flex-col items-center gap-1 select-none",
+                        "text-white/70 hover:text-white transition-colors",
+                        "text-xs md:text-base",
+                        isActive ? "text-white" : ""
+                      ].join(" ")}
+                    >
+                      {/* active dot (desktop only) */}
+                      <span
+                        className={[
+                          "hidden md:block absolute -left-4 top-1/2 -translate-y-1/2",
+                          "h-2 w-2 rounded-full bg-sky-400",
+                          "opacity-0 scale-0 transition-all duration-300",
+                          isActive ? "opacity-100 scale-100" : ""
+                        ].join(" ")}
+                      />
+                      {/* icon (mobile) */}
+                      <span className="md:hidden flex items-center justify-center w-6 h-6">
+                        {item.icon}
+                      </span>
+                      {/* labels */}
+                      <span className="hidden md:inline-block">{item.label}</span>
+                      <span className="md:hidden block">{item.label}</span>
+                    </a>
+                  )}
                 </li>
               );
             })}
@@ -157,12 +230,20 @@ export default function Navbar() {
             <SignedOut>
               {/* Desktop Auth Items */}
               <li className="hidden md:flex md:gap-4">
-                <SignInButton mode="modal">
+                <SignInButton 
+                  mode="modal"
+                  afterSignInUrl="/dashboard"
+                  afterSignUpUrl="/dashboard"
+                >
                   <button className="px-3 py-1 text-sm text-white/70 hover:text-white transition-colors whitespace-nowrap">
                     Sign In
                   </button>
                 </SignInButton>
-                <SignUpButton mode="modal">
+                <SignUpButton 
+                  mode="modal"
+                  afterSignInUrl="/dashboard"
+                  afterSignUpUrl="/dashboard"
+                >
                   <button className="px-3 py-1 text-sm bg-sky-500 hover:bg-sky-600 text-white rounded-full transition-colors whitespace-nowrap">
                     Sign Up
                   </button>
@@ -171,7 +252,11 @@ export default function Navbar() {
               
               {/* Mobile Auth Item */}
               <li className="flex-1 md:hidden">
-                <SignInButton mode="modal">
+                <SignInButton 
+                  mode="modal"
+                  afterSignInUrl="/dashboard"
+                  afterSignUpUrl="/dashboard"
+                >
                   <button className="flex flex-col items-center gap-1 text-white/70 hover:text-white transition-colors">
                     <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
                       <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 6.5V8.5L21 9ZM15 10.5V12.5L21 13V11L15 10.5ZM21 15V17L15 16.5V14.5L21 15ZM15 18.5V20.5L21 21V19L15 18.5ZM12 7C8.13 7 5 10.13 5 14S8.13 21 12 21S19 17.87 19 14S15.87 7 12 7ZM12 19C9.24 19 7 16.76 7 14S9.24 9 12 9S17 11.24 17 14S14.76 19 12 19Z"/>
@@ -186,6 +271,7 @@ export default function Navbar() {
               {/* Desktop User Button */}
               <li className="hidden md:block">
                 <UserButton 
+                  afterSignOutUrl="/"
                   appearance={{
                     elements: {
                       avatarBox: "w-8 h-8"
@@ -198,6 +284,7 @@ export default function Navbar() {
               <li className="flex-1 md:hidden">
                 <div className="flex flex-col items-center gap-1 text-white/70 hover:text-white transition-colors">
                   <UserButton 
+                    afterSignOutUrl="/"
                     appearance={{
                       elements: {
                         avatarBox: "w-6 h-6"
