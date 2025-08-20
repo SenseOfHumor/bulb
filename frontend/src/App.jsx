@@ -10,6 +10,7 @@ import { RoadmapTreeGraph } from './components/RoadmapTreeGraph';
 import PricingSection from './components/PricingSection';
 import Footer from './components/Footer';
 import image from "/fixmynotes-ring.svg";
+import ActionPlanFlow from './components/ActionPlanFlow';
 
 const fixmynotes = <img src={image} alt="Fix My Notes" />;
 
@@ -160,6 +161,7 @@ export default function App() {
             <div className="section-content">
               <h2>Contact</h2>
               <p>Contact info goes here.</p>
+              <ActionPlanFlow />
             </div>
           </section>
           <Footer className="mt-24" />
