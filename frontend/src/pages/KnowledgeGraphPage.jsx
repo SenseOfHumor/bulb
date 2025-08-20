@@ -29,7 +29,7 @@ export default function KnowledgeGraphPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-20">
+    <div className="min-h-screen bg-black pt-20">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8">
@@ -174,7 +174,7 @@ export default function KnowledgeGraphPage() {
                         </div>
                       </div>
                       
-                      <button className="w-full mt-4 bg-purple-500 hover:bg-purple-600 text-white py-2 rounded-lg transition-colors">
+                      <button className="w-full mt-4 bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg transition-colors">
                         View in Context
                       </button>
                     </div>

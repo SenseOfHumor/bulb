@@ -185,7 +185,7 @@ export default function ContactSection({
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-[length:200%_100%] animate-gradient text-white font-semibold hover:shadow-lg hover:shadow-blue-500/25 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-blue-600 via-sky-600 to-blue-600 bg-[length:200%_100%] animate-gradient text-white font-semibold hover:shadow-lg hover:shadow-blue-500/25 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     style={{
                       animation: isSubmitting ? 'none' : 'gradient 3s ease infinite'
                     }}
@@ -298,7 +298,7 @@ export default function ContactSection({
                     Home
                   </a>
                   <a href="#about" className="flex items-center gap-3 text-white/70 hover:text-white transition-colors group">
-                    <div className="h-2 w-2 rounded-full bg-purple-500 group-hover:bg-purple-400 transition-colors"></div>
+                    <div className="h-2 w-2 rounded-full bg-sky-500 group-hover:bg-sky-400 transition-colors"></div>
                     About
                   </a>
                   <a href="#pricing" className="flex items-center gap-3 text-white/70 hover:text-white transition-colors group">

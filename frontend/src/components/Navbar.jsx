@@ -152,8 +152,8 @@ export default function Navbar() {
           "w-full md:w-[var(--nav-w)] md:max-w-[1280px] md:mx-auto",
           // transitions
           "transition-all duration-500",
-          // Mobile only: always blurred
-          "max-md:bg-white/10 max-md:border max-md:border-white/15 max-md:backdrop-blur-xl max-md:rounded-t-xl",
+          // Mobile only: solid background to prevent background bleed
+          "max-md:bg-black/90 max-md:border max-md:border-white/20 max-md:backdrop-blur-none max-md:rounded-t-xl",
           // Desktop: original behavior
           !isScrolling
             ? "md:bg-transparent md:border md:border-transparent md:backdrop-blur-0 md:rounded-none"

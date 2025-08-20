@@ -43,7 +43,7 @@ export default function ProjectsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-20">
+    <div className="min-h-screen bg-black pt-20">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8">
@@ -105,7 +105,7 @@ export default function ProjectsPage() {
                     </div>
                     
                     <div className="flex gap-2">
-                      <button className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                      <button className="bg-sky-500 hover:bg-sky-600 text-white px-3 py-1 rounded text-sm transition-colors">
                         View Graph
                       </button>
                       <button className="bg-sky-500 hover:bg-sky-600 text-white px-3 py-1 rounded text-sm transition-colors">

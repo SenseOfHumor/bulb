@@ -5,7 +5,7 @@ export default function Dashboard() {
   const { user } = useUser();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-20">
+    <div className="min-h-screen bg-black pt-20">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8">
@@ -41,7 +41,7 @@ export default function Dashboard() {
                   <p className="text-white/60 mb-4">
                     Access your previously analyzed documents and research projects.
                   </p>
-                  <div className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg transition-colors text-center">
+                  <div className="w-full bg-sky-500 hover:bg-sky-600 text-white py-2 px-4 rounded-lg transition-colors text-center">
                     View Projects
                   </div>
                 </div>
@@ -86,7 +86,7 @@ export default function Dashboard() {
                   <div className="text-white/60 text-sm">Documents</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-400">0</div>
+                  <div className="text-2xl font-bold text-sky-400">0</div>
                   <div className="text-white/60 text-sm">Action Items</div>
                 </div>
                 <div className="text-center">

@@ -16,7 +16,7 @@ function AuthenticatedLandingRedirect() {
   
   if (!isLoaded) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
       </div>
     );
@@ -32,7 +32,7 @@ function AuthenticatedLandingRedirect() {
 export default function App() {
   return (
     <Router basename="/bulb">
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="min-h-screen bg-black">
         <Navbar />
         <Routes>
           {/* Public route - Landing page with auth redirect */}

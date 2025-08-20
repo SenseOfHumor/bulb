@@ -60,7 +60,7 @@ export default function AssistantPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-20">
+    <div className="min-h-screen bg-black pt-20">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-8 h-[calc(100vh-200px)] flex flex-col">
@@ -76,7 +76,7 @@ export default function AssistantPage() {
                 </p>
               </div>
               <div className="flex gap-3">
-                <button className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors">
+                <button className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg transition-colors">
                   Clear Chat
                 </button>
                 <button className="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg transition-colors">

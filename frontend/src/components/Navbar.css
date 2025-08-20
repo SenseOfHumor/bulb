@@ -21,7 +21,6 @@
   width:var(--nav-w,100%);       /* 100% at top on desktop */
   background-color:var(--background);
   border:1px solid transparent;
-  backdrop-filter:blur(20px);
   transition:
     width .5s ease,
     background-color .5s ease,
@@ -70,11 +69,10 @@
     width:100% !important;
     bottom:0; top:auto; left:0; right:0; margin:0;
     border-radius:1rem 1rem 0 0;
-    border-color:rgba(255,255,255,.1);
+    border-color:rgba(255,255,255,.2);
   }
   .main-nav.scrolling{
     border-radius:1rem 1rem 0 0;
-    background-color:var(--component-bg);
   }
   body{padding-bottom:70px}
 }
