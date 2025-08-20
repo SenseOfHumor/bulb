@@ -10,9 +10,13 @@ if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Clerk Publishable Key")
 }
 
+// Environment-aware URLs for Clerk redirects
+const isProduction = window.location.hostname.includes('github.io');
+const afterSignOutUrl = isProduction ? '/bulb/' : '/';
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={afterSignOutUrl}>
       <App />
     </ClerkProvider>
   </React.StrictMode>

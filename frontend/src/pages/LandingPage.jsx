@@ -49,14 +49,6 @@ export default function LandingPage() {
         collapsed: true,
         children: [
           { title: "People & orgs" },
-          { title: "Claims & evidence" },
-          { title: "Knowledge graph" },
-          { title: "Other",
-            children: [
-              { title: "Sub-item 1" },
-              { title: "Sub-item 2" },
-            ],
-           }
         ],
       },
     ],
@@ -85,7 +77,7 @@ export default function LandingPage() {
           <h1>
             <span className="text-4xl font-bold text-zinc-100">FIXMYNOTES</span>
           </h1>
-          <div className='section-content flex flex-col md:flex-row items-center justify-center gap-8'>
+          <div className='section-content flex flex-col md:flex-row items-center justify-center gap-8 min-h-[300px]'>
             <ScrambledText
               className="scrambled-text-demo"
               radius={100}
@@ -99,10 +91,10 @@ export default function LandingPage() {
                 imageSrc={image}
                 altText="TRACE"
                 captionText="Meet TRACE - your AI research assistant"
-                containerHeight="300px"
-                containerWidth="300px"
-                imageHeight="300px"
-                imageWidth="300px"
+                containerHeight="250px"
+                containerWidth="250px"
+                imageHeight="250px"
+                imageWidth="250px"
                 rotateAmplitude={12}
                 scaleOnHover={1.2}
                 showMobileWarning={false}

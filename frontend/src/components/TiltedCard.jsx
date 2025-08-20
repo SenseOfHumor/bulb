@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, useMotionValue, useSpring } from "motion/react";
 import image from "/fixmynotes-ring.svg";
 
@@ -41,6 +41,14 @@ export default function TiltedCard({
 
   const [lastY, setLastY] = useState(0);
 
+  // Initialize proper values for mobile on mount
+  useEffect(() => {
+    scale.set(scaleOnHover);
+    opacity.set(1);
+    rotateX.set(-8);
+    rotateY.set(12);
+  }, [scale, opacity, rotateX, rotateY, scaleOnHover]);
+
   function handleMouse(e) {
     if (!ref.current) return;
 
@@ -75,6 +83,14 @@ export default function TiltedCard({
     rotateFigcaption.set(0);
   }
 
+  // Set initial values for mobile (no mouse interactions)
+  function handleTouchStart() {
+    scale.set(scaleOnHover);
+    opacity.set(1);
+    rotateX.set(-8);
+    rotateY.set(12);
+  }
+
   return (
     <figure
       ref={ref}
@@ -82,10 +98,13 @@ export default function TiltedCard({
       style={{
         height: containerHeight,
         width: containerWidth,
+        minHeight: containerHeight, // Ensure minimum height on mobile
+        minWidth: containerWidth,   // Ensure minimum width on mobile
       }}
       onMouseMove={handleMouse}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
     >
       {showMobileWarning && (
         <div className="absolute top-4 text-center text-sm block sm:hidden">
@@ -106,7 +125,7 @@ export default function TiltedCard({
         <motion.img
           src={imageSrc}
           alt={altText}
-          className="absolute top-0 left-0 object-cover rounded-[15px] will-change-transform [transform:translateZ(0)]"
+          className="absolute top-0 left-0 object-cover rounded-[15px] will-change-transform [transform:translateZ(0)] max-w-full max-h-full"
           style={{
             width: imageWidth,
             height: imageHeight,
