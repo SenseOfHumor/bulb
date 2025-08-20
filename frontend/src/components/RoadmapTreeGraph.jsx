@@ -271,12 +271,14 @@ export function NodeLinkGraphDemo() {
 }
 
 /* =========================================================
-   Hierarchical Roadmap Tree (top‑down, reactive, collapsible)
+   Hierarchical Roadmap Tree (top-down, reactive, collapsible)
    - Vertical top→down tree using d3.tree()
-   - Royal‑blue chrome
+   - Royal-blue chrome
    - Hover glow + click to collapse/expand (reactive)
    - Zoom/pan + keyboard focusability
    - Dynamic text wrapping + card height (no overflow)
+   - Smooth snap-to-center when collapsing a parent
+   - NEW: rotating disclosure chevron for nodes with children
 ========================================================= */
 
 export function RoadmapTreeGraph({
@@ -293,13 +295,12 @@ export function RoadmapTreeGraph({
 
   // text wrap util: wraps and vertically centers lines
   function wrapText(textSel, str, width) {
-    const lineHeight = 1.3; // em - increased for better spacing
+    const lineHeight = 1.3; // em
     textSel.each(function () {
       const text = d3.select(this);
       text.text(null);
       const words = String(str || "").split(/\s+/).filter(Boolean);
       let line = [];
-      let lineNumber = 0;
       let tspan = text.append("tspan").attr("x", 0).attr("dy", "0em");
       for (let i = 0; i < words.length; i++) {
         line.push(words[i]);
@@ -309,16 +310,15 @@ export function RoadmapTreeGraph({
           tspan.text(line.join(" "));
           line = [words[i]];
           tspan = text.append("tspan").attr("x", 0).attr("dy", `${lineHeight}em`).text(words[i]);
-          lineNumber++;
         }
       }
-      // center vertically - simpler approach
+      // center vertically
       const tspans = text.selectAll("tspan");
       const n = tspans.size();
       if (n > 1) {
         const totalHeight = (n - 1) * lineHeight;
-        tspans.each(function(_, i) {
-          d3.select(this).attr("dy", i === 0 ? `-${totalHeight/2}em` : `${lineHeight}em`);
+        tspans.each(function (_, i) {
+          d3.select(this).attr("dy", i === 0 ? `-${totalHeight / 2}em` : `${lineHeight}em`);
         });
       }
     });
@@ -338,25 +338,19 @@ export function RoadmapTreeGraph({
     const w = bbox.width || svgRef.current.parentElement?.clientWidth || 900;
     svg.attr("viewBox", [0, 0, w, height]).attr("role", "img");
 
-    // zoom/pan - mobile friendly: only allow zoom with pinch or when actively dragging
+    // zoom/pan - mobile friendly
     const zoom = d3.zoom()
       .scaleExtent([0.5, 2.4])
       .filter((event) => {
-        // Allow zoom only if:
-        // 1. It's a wheel event with Ctrl key (desktop zoom)
-        // 2. It's a touch event with multiple touches (mobile pinch)
-        // 3. It's a mousedown event (drag to pan)
-        if (event.type === 'wheel') {
-          return event.ctrlKey || event.metaKey;
-        }
-        if (event.type === 'touchstart') {
-          return event.touches.length > 1;
-        }
+        if (event.type === 'wheel') return event.ctrlKey || event.metaKey;
+        if (event.type === 'touchstart') return event.touches.length > 1;
         return event.type === 'mousedown';
       })
       .on("zoom", (e) => container.attr("transform", e.transform));
-    
+
     svg.call(zoom).on("dblclick.zoom", null);
+
+    const getZoomTransform = () => d3.zoomTransform(svg.node());
 
     // defs: gradient + shadow + glow
     const defs = svg.append("defs");
@@ -371,7 +365,13 @@ export function RoadmapTreeGraph({
       .attr("y", "-50%")
       .attr("width", "200%")
       .attr("height", "200%");
-    shadow.append("feDropShadow").attr("dx", 0).attr("dy", 2).attr("stdDeviation", 3).attr("flood-color", "rgba(65,105,225,0.6)").attr("flood-opacity", 0.6);
+    shadow
+      .append("feDropShadow")
+      .attr("dx", 0)
+      .attr("dy", 2)
+      .attr("stdDeviation", 3)
+      .attr("flood-color", "rgba(65,105,225,0.6)")
+      .attr("flood-opacity", 0.6);
 
     defs
       .append("filter")
@@ -383,15 +383,15 @@ export function RoadmapTreeGraph({
       .attr("flood-color", "rgba(65,105,225,0.9)")
       .attr("flood-opacity", 0.75);
 
-    // deep clone so d3 can mutate for collapse/expand without touching props
+    // deep clone so d3 can mutate
     const cloned = JSON.parse(JSON.stringify(data));
     const root = d3.hierarchy(cloned);
 
-    // estimate max node height from titles (to prevent vertical overlap)
-    const innerW = node.width - 24; // padding left+right ~ 12px each
-    const charW = 6.5; // px per char (adjusted for 11px font)
+    // estimate max node height
+    const innerW = node.width - 24;
+    const charW = 6.5;
     const charsPerLine = Math.max(8, Math.floor(innerW / charW));
-    const estLineH = 15; // px (increased for better spacing)
+    const estLineH = 15;
     let maxH = node.height;
     root.each((d) => {
       const s = String(d.data?.title || "");
@@ -402,12 +402,15 @@ export function RoadmapTreeGraph({
       if (estBoxH > maxH) maxH = estBoxH;
     });
 
-    // layout helpers (TOP-DOWN ALWAYS): x is vertical, y is horizontal
+    // layout helpers (TOP-DOWN)
     const dy = node.width + 80; // column width
-    const dx = maxH + 36; // row height (based on max estimated card height)
+    const dx = maxH + 36;       // row height
     const tree = d3.tree().nodeSize([dx, dy]).separation((a, b) => (a.parent === b.parent ? siblingGap : siblingGap + 0.4));
 
-    // initialize collapse from data.collapsed flags
+    // initialize collapse from flags + auto-collapse deep branches if too many nodes
+    let totalVisibleNodes = 0;
+    root.each(() => totalVisibleNodes++);
+    
     root.each((d) => {
       if (d.data && d.data.collapsed && d.children) {
         d._children = d.children;
@@ -415,52 +418,155 @@ export function RoadmapTreeGraph({
       }
     });
 
+    // Auto-collapse strategy: if more than 15 nodes, collapse nodes at depth 3+
+    if (totalVisibleNodes > 15) {
+      root.each((d) => {
+        if (d.depth >= 3 && d.children && d.children.length > 0) {
+          d._children = d.children;
+          d.children = null;
+        }
+      });
+    }
+
+    // If still too many, collapse at depth 2+
+    totalVisibleNodes = 0;
+    root.each(() => totalVisibleNodes++);
+    if (totalVisibleNodes > 15) {
+      root.each((d) => {
+        if (d.depth >= 2 && d.children && d.children.length > 0) {
+          d._children = d.children;
+          d.children = null;
+        }
+      });
+    }
+
     root.x0 = 0;
     root.y0 = 0;
 
     const rootLayer = container.append("g").attr("transform", `translate(40,20)`);
-    const linkLayer = rootLayer.append("g").attr("class", "links"); // stays BEHIND boxes
-    const nodeLayer = rootLayer.append("g").attr("class", "nodes"); // boxes & labels ABOVE links
-
+    const linkLayer = rootLayer.append("g").attr("class", "links");
+    const nodeLayer = rootLayer.append("g").attr("class", "nodes");
     let i = 0;
 
-    // Link path helpers: connect from bottom of parent box to top of child box
+    // Link path helpers
     const makeLink = d3.linkHorizontal().x((d) => d.y).y((d) => d.x);
     const halfBox = (nd) => ((nd && nd._box ? nd._box.h : node.height) / 2);
-    const elbow = (d) =>
-      makeLink({
-        source: { x: d.source.x + halfBox(d.source), y: d.source.y },
-        target: { x: d.target.x - halfBox(d.target), y: d.target.y },
+    const elbow = (d) => {
+      // Use target positions for smooth link transitions during layout changes
+      const sourceX = d.source._targetX !== undefined ? d.source._targetX : d.source.x;
+      const sourceY = d.source._targetY !== undefined ? d.source._targetY : d.source.y;
+      const targetX = d.target._targetX !== undefined ? d.target._targetX : d.target.x;
+      const targetY = d.target._targetY !== undefined ? d.target._targetY : d.target.y;
+      
+      return makeLink({
+        source: { x: sourceX + halfBox(d.source), y: sourceY },
+        target: { x: targetX - halfBox(d.target), y: targetY },
       });
+    };
     const collapsedAt = (s) =>
       makeLink({
         source: { x: s.x0 + halfBox(s), y: s.y0 },
         target: { x: s.x0 + halfBox(s), y: s.y0 },
       });
 
+    // helper: smooth-center on a (x,y) node position
+    function smoothCenterOn(nodeDatum, opts = {}) {
+      const { k: currentK } = getZoomTransform();
+      const k = Math.min(Math.max(currentK, 0.8), 1.1); // clamp
+      // compute dynamic vertical offset from latest layout extents
+      let xMin = Infinity, xMax = -Infinity;
+      root.each((d) => { if (d.x < xMin) xMin = d.x; if (d.x > xMax) xMax = d.x; });
+      const rootOffsetX = 40;      // must match rootLayer translate x
+      const rootOffsetY = 20;      // base y
+      const dynamicYOffset = -xMin + rootOffsetY; // must match in update()
+
+      const targetX = nodeDatum.y;
+      const targetY = nodeDatum.x;
+
+      const tx = (w / 2) - (rootOffsetX + targetX) * k;
+      const ty = (height / 2) - (dynamicYOffset + targetY) * k;
+
+      svg.transition()
+        .duration(opts.duration ?? 800)
+        .ease(d3.easeCubicInOut)
+        .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(k));
+    }
+
+    let isInitialLoad = true;
     update(root);
 
-    function update(source) {
+    function update(source, opts = {}) {
+      const { centerOn = false } = opts;
+
+      // For non-initial updates, preserve parent positions to prevent snapping
+      let preservedPositions = new Map();
+      
+      if (!isInitialLoad) {
+        // First, ensure all nodes have IDs for proper position mapping
+        root.each((d) => {
+          if (!d.id) d.id = ++i;
+        });
+        
+        // Store current positions of all nodes before tree recalculation
+        root.each((d) => {
+          preservedPositions.set(d.id, { x: d.x, y: d.y });
+        });
+      }
+
       // compute new layout (TOP-DOWN)
       tree(root);
 
-      // center vertically according to current content extents
-      let x0 = Infinity,
-        x1 = -Infinity;
-      root.each((d) => {
-        if (d.x < x0) x0 = d.x;
-        if (d.x > x1) x1 = d.x;
+      // CRITICAL: Lock root node position after tree calculation if not initial load
+      if (!isInitialLoad) {
+        const preserved = preservedPositions.get(root.id);
+        if (preserved) {
+          // Always keep root at its preserved position
+          root._targetX = root.x;  // Store calculated position
+          root._targetY = root.y;
+          root.x = preserved.x;    // Force back to preserved position
+          root.y = preserved.y;
+        }
+      }
+
+      // For non-initial updates, restore ALL preserved positions and animate gradually
+      if (!isInitialLoad && preservedPositions.size > 0) {
+        root.each((d) => {
+          // Skip root since we handled it specifically above
+          if (d !== root) {
+            const preserved = preservedPositions.get(d.id);
+            if (preserved) {
+              // Store the calculated target position
+              d._targetX = d.x;
+              d._targetY = d.y;
+              // Restore the preserved position for smooth transition
+              d.x = preserved.x;
+              d.y = preserved.y;
+            }
+          }
+        });
+      }
+
+      // Mark that initial load is complete
+      isInitialLoad = false;
+
+      // center vertically according to content extents (use target positions when available)
+      let x0 = Infinity, x1 = -Infinity;
+      root.each((d) => { 
+        const checkX = d._targetX !== undefined ? d._targetX : d.x;
+        if (checkX < x0) x0 = checkX; 
+        if (checkX > x1) x1 = checkX; 
       });
-      const offsetY = 0; // keep from top; could center if desired
-      rootLayer.attr("transform", `translate(40,${offsetY - x0 + 20})`);
+      const offsetY = 0;
+      const dynamicYOffset = offsetY - x0 + 20; // reused by chevron position animation
 
       const nodes = root.descendants().reverse();
       const links = root.links();
 
-      // assign ids and fixed depth spacing
+      // ids and depth spacing
       nodes.forEach((d) => {
+        // IDs are already assigned during position preservation, but ensure for new nodes
         if (!d.id) d.id = ++i;
-        d.y = d.depth * dy; // fixed horizontal spacing
+        d.y = d.depth * dy;
       });
 
       // NODES
@@ -472,23 +578,41 @@ export function RoadmapTreeGraph({
         .attr("class", "node")
         .attr("transform", () => `translate(${source.y0},${source.x0})`)
         .style("cursor", "pointer")
+        .style("opacity", 0)
         .on("click", (_, d) => {
-          // toggle collapse (reactive)
-          if (d.children) {
-            d._children = d.children;
-            d.children = null;
-          } else {
-            d.children = d._children;
-            d._children = null;
-          }
+          const isCollapsing = !!d.children && d.children.length > 0;
+          // toggle
+          if (d.children) { d._children = d.children; d.children = null; }
+          else { d.children = d._children; d._children = null; }
           onNodeClick?.(d.data);
-          update(d);
+          // Let the smooth position interpolation handle the movement instead of smoothCenterOn
+          update(d, { centerOn: false });
         })
         .on("mouseenter", function () {
           d3.select(this).select("rect").attr("filter", `url(#${id}-glow)`);
+          // Enhance chevron on hover - brighten the royal blue background
+          d3.select(this).select("g.disclosure circle")
+            .transition()
+            .duration(200)
+            .attr("fill", "#6B82FF")
+            .attr("stroke-width", 2);
+          d3.select(this).select("g.disclosure path")
+            .transition()
+            .duration(200)
+            .attr("fill", "#ffffff");
         })
         .on("mouseleave", function () {
           d3.select(this).select("rect").attr("filter", `url(#${id}-shadow)`);
+          // Reset chevron on mouse leave
+          d3.select(this).select("g.disclosure circle")
+            .transition()
+            .duration(200)
+            .attr("fill", "#4b68ff")
+            .attr("stroke-width", 1.5);
+          d3.select(this).select("g.disclosure path")
+            .transition()
+            .duration(200)
+            .attr("fill", "#ffffff");
         });
 
       const rectEnter = nodeEnter
@@ -513,7 +637,7 @@ export function RoadmapTreeGraph({
         .style("fill", "#fff")
         .style("user-select", "none");
 
-      // wrap and then compute actual box height
+      // wrap and adjust box height
       textEnter.each(function (d) {
         wrapText(d3.select(this), d.data.title, node.width - 24);
         const bb = this.getBBox();
@@ -525,23 +649,93 @@ export function RoadmapTreeGraph({
           .attr("height", actualH);
       });
 
-      // UPDATE + ENTER merge
+      // --- Improved: disclosure chevron (on the border, overflowing). Rotates on expand/collapse ---
+      const chevronEnter = nodeEnter
+        .append("g")
+        .attr("class", "disclosure")
+        .attr("transform", `translate(${node.width / 2},0) rotate(0)`) // positioned exactly on the right border
+        .style("pointer-events", "none");
+
+      // Create a circular background that sits on the border (half outside, half inside)
+      chevronEnter
+        .append("circle")
+        .attr("cx", 0)
+        .attr("cy", 0)
+        .attr("r", 10)
+        .attr("fill", "#4b68ff")
+        .attr("stroke", "#4be3ff")
+        .attr("stroke-width", 1.5)
+        .attr("opacity", 1);
+
+      // White triangle icon ▶ 
+      chevronEnter
+        .append("path")
+        .attr("d", "M -3 -4 L 4 0 L -3 4 Z") // increased size
+        .attr("fill", "#ffffff")
+        .attr("opacity", 1)
+        .attr("stroke", "none");
+
+      // UPDATE + ENTER
       const nodeUpdate = nodeEnter.merge(nodeSel);
 
       nodeUpdate
         .transition()
-        .duration(400)
-        .attr("transform", (d) => `translate(${d.y},${d.x})`);
+        .duration(800)
+        .ease(d3.easeCubicInOut)
+        .attr("transform", (d) => {
+          // Use target positions if available, otherwise use current positions
+          const finalX = d._targetX !== undefined ? d._targetX : d.x;
+          const finalY = d._targetY !== undefined ? d._targetY : d.y;
+          return `translate(${finalY},${finalX})`;
+        })
+        .style("opacity", 1)
+        .on("end", function(d) {
+          // After transition, commit the target positions
+          if (d._targetX !== undefined) {
+            d.x = d._targetX;
+            d.y = d._targetY;
+            delete d._targetX;
+            delete d._targetY;
+          }
+        });
+
+      // update chevron visibility + rotation every tick
+      nodeUpdate.select("g.disclosure")
+        .style("display", (d) => (d.children || d._children ? "block" : "none"))
+        .transition()
+        .duration(800)
+        .ease(d3.easeCubicInOut)
+        .attr("transform", (d) => {
+          const angle = d.children ? 90 : 0; // ▼ when expanded, ▶ when collapsed
+          return `translate(${node.width / 2},0) rotate(${angle})`;
+        });
+
+      // Smooth transition for the entire graph repositioning (coordinated with node movements)
+      if (source === root) {
+        // Initial load - set immediately to avoid conflict with zoom-to-fit
+        rootLayer.attr("transform", `translate(40,${dynamicYOffset})`);
+      } else {
+        // DISABLED during interactions to prevent root node snapping
+        // Node interaction - animate smoothly, with slight delay to coordinate with node transitions
+        // rootLayer
+        //   .transition()
+        //   .delay(50) // Small delay to let node transitions start first
+        //   .duration(750) // Slightly shorter to finish around the same time
+        //   .ease(d3.easeCubicInOut)
+        //   .attr("transform", `translate(40,${dynamicYOffset})`);
+      }
 
       // EXIT
       nodeSel
         .exit()
         .transition()
-        .duration(350)
+        .duration(600)
+        .ease(d3.easeCubicInOut)
         .attr("transform", () => `translate(${source.y},${source.x})`)
+        .style("opacity", 0)
         .remove();
 
-      // LINKS (behind nodes)
+      // LINKS
       const linkSel = linkLayer.selectAll("path.link").data(links, (d) => d.target.id);
 
       const linkEnter = linkSel
@@ -552,32 +746,41 @@ export function RoadmapTreeGraph({
         .attr("stroke", "rgba(255,255,255,0.35)")
         .attr("stroke-width", 1.6)
         .attr("stroke-linecap", "round")
-        .attr("d", () => collapsedAt(source));
+        .attr("d", () => collapsedAt(source))
+        .style("opacity", 0);
 
       linkEnter
         .merge(linkSel)
         .transition()
-        .duration(400)
-        .attr("d", elbow);
+        .duration(800)
+        .ease(d3.easeCubicInOut)
+        .attr("d", elbow)
+        .style("opacity", 1);
 
       linkSel
         .exit()
         .transition()
-        .duration(350)
+        .duration(600)
+        .ease(d3.easeCubicInOut)
+        .style("opacity", 0)
         .attr("d", () =>
           makeLink({ source: { x: source.x + halfBox(source), y: source.y }, target: { x: source.x + halfBox(source), y: source.y } })
         )
         .remove();
 
-      // stash old positions for transitions
+      // stash old positions for transitions (use target positions when available)
       root.each((d) => {
-        d.x0 = d.x;
-        d.y0 = d.y;
+        d.x0 = d._targetX !== undefined ? d._targetX : d.x;
+        d.y0 = d._targetY !== undefined ? d._targetY : d.y;
       });
 
-      // Zoom to fit the entire graph on initial load
+      // Optional: if you still want to force-center after layout
+      if (opts.centerOn && source) {
+        smoothCenterOn(source, { duration: 800 });
+      }
+
+      // Zoom to fit on initial load with smooth animation
       if (source === root) {
-        // Calculate bounds of all nodes in their final positions
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         nodes.forEach(d => {
           const nodeHeight = d._box ? d._box.h : node.height;
@@ -587,29 +790,33 @@ export function RoadmapTreeGraph({
           maxY = Math.max(maxY, d.y + node.width/2);
         });
 
-        // Account for the rootLayer transform offset
         const rootOffsetX = 40;
-        const rootOffsetY = offsetY - x0 + 20;
-        
-        // Add padding
+        const rootOffsetY = 20;
+
         const padding = 40;
-        const contentWidth = maxY - minY + padding * 2;
-        const contentHeight = maxX - minX + padding * 2;
-        
-        // Calculate scale to fit (but don't zoom in too much)
+        const contentWidth = (maxY - minY) + padding * 2;
+        const contentHeight = (maxX - minX) + padding * 2;
+
         const scaleX = w / contentWidth;
         const scaleY = height / contentHeight;
-        const scale = Math.min(scaleX, scaleY, 0.9); // Max scale of 0.9
-        
-        // Calculate center position accounting for rootLayer offset
+        const scale = Math.min(scaleX, scaleY, 0.9);
+
         const centerX = (minY + maxY) / 2;
         const centerY = (minX + maxX) / 2;
-        const translateX = (w / 2 - centerX * scale) - rootOffsetX * scale;
-        const translateY = (height / 2 - centerY * scale) - rootOffsetY * scale;
 
-        // Apply the calculated transform
+        const translateX = (w / 2 - centerX * scale) - rootOffsetX * scale;
+        let x0min2 = Infinity;
+        root.each((d) => { if (d.x < x0min2) x0min2 = d.x; });
+        const dynamicYOffset2 = -x0min2 + rootOffsetY;
+        const translateY = (height / 2 - centerY * scale) - dynamicYOffset2 * scale;
+
         const transform = d3.zoomIdentity.translate(translateX, translateY).scale(scale);
-        svg.call(zoom.transform, transform);
+        
+        // Animate the zoom-to-fit transition smoothly
+        svg.transition()
+          .duration(1200)
+          .ease(d3.easeCubicInOut)
+          .call(zoom.transform, transform);
       }
     }
   }, [data, id, node.width, node.height, node.rx, siblingGap, height]);
@@ -619,12 +826,14 @@ export function RoadmapTreeGraph({
       <svg ref={svgRef} className="h-[560px] w-full select-none">
         <g ref={gRef} />
       </svg>
-      <p className="mt-2 text-[11px] text-white/45">CTRL/CMD + Scroll or pinch to zoom. Drag to pan. Click a node to expand/collapse.</p>
+      <p className="mt-2 text-[11px] text-white/45">
+        CTRL/CMD + Scroll or pinch to zoom. Drag to pan. Click a node to expand/collapse.
+      </p>
     </div>
   );
 }
 
-// Demo data (in the style of your reference image, no progress bars; long labels to test wrapping)
+// Demo data (long labels to test wrapping)
 const roadmapData = {
   title: "Arrays & Hashing",
   children: [
@@ -656,8 +865,8 @@ const roadmapData = {
             {
               title: "DP",
               children: [
-                { title: "1‑D DP" },
-                { title: "2‑D DP" },
+                { title: "1-D DP" },
+                { title: "2-D DP" },
                 { title: "Bit Manipulation" },
                 { title: "Math & Geometry" },
               ],
