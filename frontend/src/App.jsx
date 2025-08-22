@@ -9,6 +9,7 @@ import UploadPage from './pages/UploadPage';
 import ProjectsPage from './pages/ProjectsPage';
 import KnowledgeGraphPage from './pages/KnowledgeGraphPage';
 import AssistantPage from './pages/AssistantPage';
+import ReactFlowPage from './pages/ReactFlow';
 
 // Component to handle authenticated user redirect from landing page
 function AuthenticatedLandingRedirect() {
@@ -76,6 +77,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <AssistantPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/react-flow" 
+            element={
+              <ProtectedRoute>
+                <ReactFlowPage />
               </ProtectedRoute>
             } 
           />
