@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useAuth } from '@clerk/clerk-react';
 import './App.css';
 import Navbar from './components/Navbar';
+import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
@@ -31,20 +32,34 @@ function AuthenticatedLandingRedirect() {
 }
 
 export default function App() {
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <Router basename="/bulb">
       <div className="min-h-screen bg-black">
-        <Navbar />
+        {/* Show navbar only for unauthenticated users */}
+        {!isSignedIn && <Navbar />}
+        
         <Routes>
           {/* Public route - Landing page with auth redirect */}
           <Route path="/" element={<AuthenticatedLandingRedirect />} />
           
-          {/* Protected routes - require authentication */}
+          {/* Protected routes - require authentication and use sidebar layout */}
           <Route 
             path="/dashboard" 
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <AppLayout>
+                  <Dashboard />
+                </AppLayout>
               </ProtectedRoute>
             } 
           />
@@ -52,7 +67,9 @@ export default function App() {
             path="/upload" 
             element={
               <ProtectedRoute>
-                <UploadPage />
+                <AppLayout>
+                  <UploadPage />
+                </AppLayout>
               </ProtectedRoute>
             } 
           />
@@ -60,7 +77,9 @@ export default function App() {
             path="/projects" 
             element={
               <ProtectedRoute>
-                <ProjectsPage />
+                <AppLayout>
+                  <ProjectsPage />
+                </AppLayout>
               </ProtectedRoute>
             } 
           />
@@ -68,7 +87,9 @@ export default function App() {
             path="/knowledge-graph" 
             element={
               <ProtectedRoute>
-                <KnowledgeGraphPage />
+                <AppLayout>
+                  <KnowledgeGraphPage />
+                </AppLayout>
               </ProtectedRoute>
             } 
           />
@@ -76,7 +97,9 @@ export default function App() {
             path="/assistant" 
             element={
               <ProtectedRoute>
-                <AssistantPage />
+                <AppLayout>
+                  <AssistantPage />
+                </AppLayout>
               </ProtectedRoute>
             } 
           />
@@ -84,7 +107,9 @@ export default function App() {
             path="/react-flow" 
             element={
               <ProtectedRoute>
-                <ReactFlowPage />
+                <AppLayout>
+                  <ReactFlowPage />
+                </AppLayout>
               </ProtectedRoute>
             } 
           />

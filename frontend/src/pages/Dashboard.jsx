@@ -149,7 +149,7 @@ return (
   <>
     <section className='section min-h-50'>
         <div style={{ 
-          width: '80%', 
+          width: '100%', 
           minHeight: '300px', 
           height: '80vh', 
           maxHeight: '100vh', 
