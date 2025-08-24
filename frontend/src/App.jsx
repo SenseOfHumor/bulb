@@ -5,12 +5,14 @@ import Navbar from './components/Navbar';
 import AppLayout from './components/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
-import Dashboard from './pages/Dashboard';
+import MindMapPage from './pages/Dashboard';
+import DashboardPage from './pages/DashboardPage';
 import UploadPage from './pages/UploadPage';
 import ProjectsPage from './pages/ProjectsPage';
 import KnowledgeGraphPage from './pages/KnowledgeGraphPage';
 import AssistantPage from './pages/AssistantPage';
 import ReactFlowPage from './pages/ReactFlow';
+import NotePage from './pages/NotePage';
 
 // Component to handle authenticated user redirect from landing page
 function AuthenticatedLandingRedirect() {
@@ -47,73 +49,16 @@ export default function App() {
       <div className="min-h-screen bg-black">
         {/* Show navbar only for unauthenticated users */}
         {!isSignedIn && <Navbar />}
-        
+
         <Routes>
-          {/* Public route - Landing page with auth redirect */}
-          <Route path="/" element={<AuthenticatedLandingRedirect />} />
-          
-          {/* Protected routes - require authentication and use sidebar layout */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Dashboard />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/upload" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <UploadPage />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/projects" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ProjectsPage />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/knowledge-graph" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <KnowledgeGraphPage />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/assistant" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <AssistantPage />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/react-flow" 
-            element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <ReactFlowPage />
-                </AppLayout>
-              </ProtectedRoute>
-            } 
-          />
-          
+          <Route path="/mindmap" element={<ProtectedRoute><AppLayout><MindMapPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><AppLayout><DashboardPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/upload" element={<ProtectedRoute><AppLayout><UploadPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/projects" element={<ProtectedRoute><AppLayout><ProjectsPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/knowledge-graph" element={<ProtectedRoute><AppLayout><KnowledgeGraphPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/assistant" element={<ProtectedRoute><AppLayout><AssistantPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/react-flow" element={<ProtectedRoute><AppLayout><ReactFlowPage /></AppLayout></ProtectedRoute>} />
+          <Route path="/note/:id" element={<ProtectedRoute><AppLayout><NotePage /></AppLayout></ProtectedRoute>} />
           {/* Catch-all route - redirect to appropriate page based on auth state */}
           <Route path="*" element={<AuthenticatedLandingRedirect />} />
         </Routes>

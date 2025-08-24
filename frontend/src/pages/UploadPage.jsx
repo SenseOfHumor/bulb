@@ -113,7 +113,7 @@ export default function UploadPage() {
 
             <div className="flex justify-center mt-6">
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/mindmap')}
                 className="text-white/70 hover:text-white transition-colors"
               >
                 ← Back to Dashboard

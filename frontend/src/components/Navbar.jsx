@@ -20,7 +20,7 @@ export default function Navbar() {
   // Environment-aware URLs for Clerk redirects
   const isProduction = window.location.hostname.includes('github.io');
   const baseUrl = isProduction ? '/bulb' : '';
-  const afterSignInUrl = `${baseUrl}/dashboard`;
+  const afterSignInUrl = `${baseUrl}/mindmap`;
   const afterSignOutUrl = isProduction ? '/bulb/' : '/';
 
   // Navigation items for signed-out users (landing page)
@@ -49,7 +49,7 @@ export default function Navbar() {
 
   // Navigation items for signed-in users (app routes)
   const appNavItems = [
-    { label: "Dashboard", to: "/dashboard", icon: (
+  { label: "Mindmap", to: "/mindmap", icon: (
       <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
         <path d="M21 20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V9.48907C3 9.18048 3.14247 8.88917 3.38606 8.69972L11.3861 2.47749C11.7472 2.19663 12.2528 2.19663 12.6139 2.47749L20.6139 8.69972C20.8575 8.88917 21 9.18048 21 9.48907V20ZM19 19V9.97815L12 4.53371L5 9.97815V19H19Z"/>
       </svg>
@@ -164,8 +164,8 @@ export default function Navbar() {
           <ul className="flex w-full items-center justify-between gap-4 md:justify-center md:gap-8">
             {/* Main Navigation Items */}
             {navItems.map((item) => {
-              const isActive = isSignedIn 
-                ? active === item.to?.slice(1) // for routes like "/dashboard" -> "dashboard"
+          const isActive = isSignedIn 
+                ? active === item.to?.slice(1) // for routes like "/mindmap" -> "mindmap"
                 : active === item.href?.slice(1); // for anchors like "#home" -> "home"
               
               return (

@@ -178,7 +178,7 @@ export default function AssistantPage() {
 
             <div className="flex justify-center mt-6">
               <Link
-                to="/dashboard"
+                to="/mindmap"
                 className="text-white/70 hover:text-white transition-colors"
               >
                 ← Back to Dashboard

@@ -7,7 +7,7 @@ import '@xyflow/react/dist/style.css';
 import Markmap from '../components/Markmap';
 import ErrorBoundary from '../components/ErrorBoundary';
 
-export default function Dashboard() {
+export default function MindMapPage() {
 
 const data = {
   "title": "Betty Davies (Radio Producer & Dramatist)",
@@ -15,17 +15,39 @@ const data = {
     {
       "title": "Early Life & BBC Entry",
       "children": [
+        { "title": "Born Elizabeth Gwladys Davies (1917-2018)" },
+        { "title": "Education: English at University College London" },
+        { "title": "Joined BBC in June 1939 as a secretary" },
+        { "title": "Began writing for BBC programmes in 1943" },
         {
-          "title": "Born Elizabeth Gwladys Davies (1917-2018)"
-        },
-        {
-          "title": "Education: English at University College London"
-        },
-        {
-          "title": "Joined BBC in June 1939 as a secretary"
-        },
-        {
-          "title": "Began writing for BBC programmes in 1943"
+          "title": "Family Background",
+          "children": [
+            { "title": "Welsh heritage" },
+            { "title": "Father: railway clerk" },
+            { "title": "Mother: school teacher" },
+            {
+              "title": "Siblings",
+              "children": [
+                { "title": "Brother: John Davies" },
+                { "title": "Sister: Margaret Davies" },
+                {
+                  "title": "Extended Family",
+                  "children": [
+                    { "title": "Uncle: Evan, miner" },
+                    { "title": "Aunt: Eira, seamstress" },
+                    {
+                      "title": "Cousins",
+                      "children": [
+                        { "title": "Cousin A: Loved poetry" },
+                        { "title": "Cousin B: Amateur actor" },
+                        { "title": "Cousin C: Journalist" }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -35,47 +57,47 @@ const data = {
         {
           "title": "Early Writing & Musicals",
           "children": [
+            { "title": "Wrote for 'Children's Hour' and 'For the Forces'" },
+            { "title": "Co-wrote musical 'Blow Your Own Trumpet!'" },
             {
-              "title": "Wrote for 'Children's Hour' and 'For the Forces'"
-            },
-            {
-              "title": "Co-wrote musical 'Blow Your Own Trumpet!'"
+              "title": "Other Musicals",
+              "children": Array.from({ length: 10 }, (_, i) => ({
+                "title": `Experimental Musical Project ${i + 1}`
+              }))
             }
           ]
         },
         {
           "title": "Just the Job for Jones",
           "children": [
-            {
-              "title": "Satirical musical comedy about the BBC"
-            },
-            {
-              "title": "Inspired by her work in Listener Research"
-            }
+            { "title": "Satirical musical comedy about the BBC" },
+            { "title": "Inspired by her work in Listener Research" }
           ]
         },
         {
           "title": "Mrs Dale's Diary (1953-1962)",
           "children": [
+            { "title": "Joined as assistant producer, became main producer" },
+            { "title": "Oversaw the BBC's first long-running serial drama" },
+            { "title": "Defined the Dales as an 'idealised' middle-class family" },
             {
-              "title": "Joined as assistant producer, became main producer"
-            },
-            {
-              "title": "Oversaw the BBC's first long-running serial drama"
-            },
-            {
-              "title": "Defined the Dales as an 'idealised' middle-class family"
+              "title": "Spin-offs",
+              "children": Array.from({ length: 8 }, (_, i) => ({
+                "title": `Mrs Dale Special Episode ${i + 1}`
+              }))
             }
           ]
         },
         {
           "title": "Mainstream Drama Producer",
           "children": [
+            { "title": "Produced popular series like 'Midweek Theatre'" },
+            { "title": "Directed a wide range of plays and serials" },
             {
-              "title": "Produced popular series like 'Midweek Theatre'"
-            },
-            {
-              "title": "Directed a wide range of plays and serials"
+              "title": "Guest Collaborations",
+              "children": Array.from({ length: 6 }, (_, i) => ({
+                "title": `Collaboration with Guest Writer ${i + 1}`
+              }))
             }
           ]
         }
@@ -87,36 +109,34 @@ const data = {
         {
           "title": "Nickname: 'Betty the Hat'",
           "children": [
-            {
-              "title": "Known for stylish headwear and theatrical flair"
-            },
-            {
-              "title": "Emphasized physical performance in radio acting"
-            }
+            { "title": "Known for stylish headwear and theatrical flair" },
+            { "title": "Emphasized physical performance in radio acting" }
           ]
         },
         {
           "title": "Promotion of Welsh Writers",
           "children": [
+            { "title": "Worked with Emlyn Williams, William Ingram, and Elizabeth Morgan" },
+            { "title": "Addressed social issues like the 1911 Llanelly rail strike" },
             {
-              "title": "Worked with Emlyn Williams, William Ingram, and Elizabeth Morgan"
-            },
-            {
-              "title": "Addressed social issues like the 1911 Llanelly rail strike"
+              "title": "Emerging Writers",
+              "children": Array.from({ length: 12 }, (_, i) => ({
+                "title": `Welsh Emerging Writer ${i + 1}`
+              }))
             }
           ]
         },
         {
           "title": "Champion of Caribbean Voices ('Black Betty')",
           "children": [
+            { "title": "Produced 15 plays by Trinidadian author Samuel Selvon" },
+            { "title": "Worked with writers Mustapha Matura and Michael Abbensetts" },
+            { "title": "Cast actors like Rudolph Walker and Mona Hammond" },
             {
-              "title": "Produced 15 plays by Trinidadian author Samuel Selvon"
-            },
-            {
-              "title": "Worked with writers Mustapha Matura and Michael Abbensetts"
-            },
-            {
-              "title": "Cast actors like Rudolph Walker and Mona Hammond"
+              "title": "Extended Caribbean Projects",
+              "children": Array.from({ length: 10 }, (_, i) => ({
+                "title": `Caribbean Radio Project ${i + 1}`
+              }))
             }
           ]
         }
@@ -125,24 +145,23 @@ const data = {
     {
       "title": "Later Life & Legacy",
       "children": [
+        { "title": "Continued working freelance after 1977 retirement" },
+        { "title": "Produced for Capital Radio and created audiobooks" },
+        { "title": "Dramatised 'David Copperfield' for BBC Radio 4 in 1991" },
+        { "title": "Died in 2018, shortly before her 101st birthday" },
         {
-          "title": "Continued working freelance after 1977 retirement"
-        },
-        {
-          "title": "Produced for Capital Radio and created audiobooks"
-        },
-        {
-          "title": "Dramatised 'David Copperfield' for BBC Radio 4 in 1991"
-        },
-        {
-          "title": "Died in 2018, shortly before her 101st birthday"
+          "title": "Posthumous Influence",
+          "children": Array.from({ length: 15 }, (_, i) => ({
+            "title": `Retrospective Documentary ${i + 1}`
+          }))
         }
       ]
     }
   ]
 };
 
-  const mindMapData = data;
+
+const mindMapData = data;
 
 
 return (

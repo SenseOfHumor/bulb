@@ -218,7 +218,7 @@ export default function KnowledgeGraphPage() {
 
             <div className="flex justify-center mt-8">
               <Link
-                to="/dashboard"
+                to="/mindmap"
                 className="text-white/70 hover:text-white transition-colors"
               >
                 ← Back to Dashboard
