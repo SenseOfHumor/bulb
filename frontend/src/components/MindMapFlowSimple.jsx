@@ -1,3 +1,4 @@
+// MindMapFlowSimple.jsx
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
@@ -14,7 +15,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-// Dark theme styles
+/* ============================ Dark theme ============================ */
 const darkThemeStyles = `
   .react-flow__controls { background: #1a1a1a !important; border: 1px solid #333 !important; }
   .react-flow__controls-button { background: #2a2a2a !important; border-bottom: 1px solid #333 !important; color: #fff !important; }
@@ -24,28 +25,30 @@ const darkThemeStyles = `
   .react-flow__node { color: #fff !important; }
 `;
 
-// Custom Node Component
+/* ============================ Node UI ============================ */
 function NodeCard({ id, data, selected }) {
   const [editing, setEditing] = useState(false);
   const [temp, setTemp] = useState(data.label || "Untitled");
 
-  const handleDoubleClick = useCallback(() => {
-    setEditing(true);
-  }, []);
-
-  const handleSubmit = useCallback((e) => {
-    e.preventDefault();
-    const cleaned = (temp || "").trim() || "Untitled";
-    data.onChange?.(id, { label: cleaned });
-    setEditing(false);
-  }, [id, temp, data]);
-
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Escape') {
-      setTemp(data.label || "Untitled");
+  const handleDoubleClick = useCallback(() => setEditing(true), []);
+  const handleSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
+      const cleaned = (temp || "").trim() || "Untitled";
+      data.onChange?.(id, { label: cleaned });
       setEditing(false);
-    }
-  }, [data.label]);
+    },
+    [id, temp, data]
+  );
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Escape") {
+        setTemp(data.label || "Untitled");
+        setEditing(false);
+      }
+    },
+    [data.label]
+  );
 
   return (
     <div
@@ -59,7 +62,7 @@ function NodeCard({ id, data, selected }) {
       <Handle type="source" position={Position.Right} />
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
-      
+
       <div className="px-3 py-2 flex items-center gap-2">
         {!editing ? (
           <>
@@ -95,79 +98,235 @@ function NodeCard({ id, data, selected }) {
   );
 }
 
-// Convert tree data to nodes and edges
-function buildNodesAndEdges(data, xGap = 260, yGap = 110) {
-  if (!data) return { nodes: [], edges: [] };
-  
+/* ============================ Layout helpers ============================ */
+// 0) Limit tree by depth/node count
+function clampTree({ data, maxVisibleDepth = Infinity, maxVisibleNodes = Infinity }) {
+  if (!data) return null;
+  let count = 0;
+  function cloneLimited(node, depth = 0) {
+    if (!node || depth > maxVisibleDepth || count >= maxVisibleNodes) return null;
+    const copy = { ...node, children: [] };
+    count++;
+    if (Array.isArray(node.children)) {
+      for (const c of node.children) {
+        if (count >= maxVisibleNodes) break;
+        const cc = cloneLimited(c, depth + 1);
+        if (cc) copy.children.push(cc);
+      }
+    }
+    return copy;
+  }
+  return cloneLimited(data, 0);
+}
+
+// 1) Stable ids + depth
+function assignIds(node) {
+  let next = 0;
+  function walk(n, depth = 0) {
+    const id = `node-${next++}`;
+    return {
+      ...n,
+      id,
+      depth,
+      children: (n.children || []).map((c) => walk(c, depth + 1)),
+    };
+  }
+  return walk(node);
+}
+
+// 2) Count leaves for proportional vertical slots
+function computeLeafCounts(node) {
+  if (!node.children || node.children.length === 0) {
+    node._leaves = 1;
+    return 1;
+  }
+  node._leaves = node.children.reduce((s, c) => s + computeLeafCounts(c), 0);
+  return node._leaves;
+}
+
+/**
+ * 3) Compact, parent-centered layered layout with **horizontal fan**
+ */
+function layoutCompactFan(root, xGap, yGap, fanByDepth, fanByLeaves, maxXGap) {
+  computeLeafCounts(root);
+
+  function place(n, x, y) {
+    n.x = x;
+    n.y = y;
+
+    const kids = n.children || [];
+    if (kids.length === 0) return;
+
+    const totalLeaves = kids.reduce((s, c) => s + c._leaves, 0);
+    let cursorY = y - ((totalLeaves - 1) * yGap) / 2;
+
+    for (const c of kids) {
+      const bandHeight = (c._leaves - 1) * yGap;
+      const childY = cursorY + bandHeight / 2;
+
+      const depthScale = Math.pow(Math.max(1, fanByDepth), n.depth + 1);
+      const leafScale = 1 + Math.max(0, fanByLeaves) * Math.log2(Math.max(1, c._leaves));
+      let stepX = xGap * depthScale * leafScale;
+      if (maxXGap) stepX = Math.min(stepX, maxXGap);
+
+      place(c, x + stepX, childY);
+      cursorY += c._leaves * yGap;
+    }
+  }
+
+  place(root, 0, 0);
+  return root;
+}
+
+// 4) Convert to React Flow nodes/edges
+function toReactFlow(root, onChange, onDelete, edgeStyle) {
   const nodes = [];
   const edges = [];
-  let nodeId = 0;
-  
-  function traverse(node, x = 0, y = 0, parentId = null) {
-    const id = `node-${nodeId++}`;
-    
+  function walk(n) {
     nodes.push({
-      id,
-      type: 'card',
-      position: { x, y },
-      data: { 
-        label: node.title || 'Untitled',
-        onChange: () => {}, // Placeholder
-        onDelete: () => {} // Placeholder
-      },
+      id: n.id,
+      type: "card",
+      position: { x: n.x, y: n.y },
+      data: { label: n.title || "Untitled", onChange, onDelete },
     });
-    
-    if (parentId) {
+    for (const c of n.children || []) {
       edges.push({
-        id: `edge-${parentId}-${id}`,
-        source: parentId,
-        target: id,
-        animated: true,
+        id: `edge-${n.id}-${c.id}`,
+        source: n.id,
+        target: c.id,
+        type: "bezier",
+        animated: false,
+        style: edgeStyle,
       });
+      walk(c);
     }
-    
-    if (node.children && Array.isArray(node.children)) {
-      node.children.forEach((child, index) => {
-        const childX = x + xGap;
-        const childY = y + (index - (node.children.length - 1) / 2) * yGap;
-        traverse(child, childX, childY, id);
-      });
-    }
-    
-    return id;
   }
-  
-  traverse(data);
+  walk(root);
   return { nodes, edges };
 }
 
-// Inner Canvas Component
-function InnerCanvas({ data, xGap, yGap }) {
+// 5) Build nodes/edges end-to-end
+function buildNodesAndEdges({
+  data,
+  xGap,
+  yGap,
+  fanByDepth,
+  fanByLeaves,
+  maxXGap,
+  maxVisibleDepth,
+  maxVisibleNodes,
+  onChange,
+  onDelete,
+  edgeStyle,
+}) {
+  if (!data) return { nodes: [], edges: [] };
+  const limited = clampTree({ data, maxVisibleDepth, maxVisibleNodes });
+  if (!limited) return { nodes: [], edges: [] };
+  const withIds = assignIds(limited);
+  const laidOut = layoutCompactFan(withIds, xGap, yGap, fanByDepth, fanByLeaves, maxXGap);
+  return toReactFlow(laidOut, onChange, onDelete, edgeStyle);
+}
+
+/* Helper: how many visible leaves (for yGap auto-scaling) */
+function getVisibleLeafCount(data, maxVisibleDepth, maxVisibleNodes) {
+  const limited = clampTree({ data, maxVisibleDepth, maxVisibleNodes });
+  if (!limited) return 1;
+  const withIds = assignIds(limited);
+  computeLeafCounts(withIds);
+  return Math.max(1, withIds._leaves || 1);
+}
+
+/* ============================ Inner Canvas ============================ */
+function InnerCanvas({
+  data,
+  xGap,
+  yGap,
+  fanByDepth,
+  fanByLeaves,
+  maxXGap,
+  maxVisibleDepth,
+  maxVisibleNodes,
+  onChangeNode,
+  onDeleteNode,
+  edgeStyle,
+}) {
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
-    () => buildNodesAndEdges(data, xGap, yGap),
-    [data, xGap, yGap]
+    () =>
+      buildNodesAndEdges({
+        data,
+        xGap,
+        yGap,
+        fanByDepth,
+        fanByLeaves,
+        maxXGap,
+        maxVisibleDepth,
+        maxVisibleNodes,
+        onChange: onChangeNode,
+        onDelete: onDeleteNode,
+        edgeStyle,
+      }),
+    [
+      data,
+      xGap,
+      yGap,
+      fanByDepth,
+      fanByLeaves,
+      maxXGap,
+      maxVisibleDepth,
+      maxVisibleNodes,
+      onChangeNode,
+      onDeleteNode,
+      edgeStyle,
+    ]
   );
-  
+
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const { fitView } = useReactFlow();
 
-  // Update nodes when data changes
+  // Rebuild when inputs change
   useEffect(() => {
-    const { nodes: newNodes, edges: newEdges } = buildNodesAndEdges(data, xGap, yGap);
-    setNodes(newNodes);
-    setEdges(newEdges);
-  }, [data, xGap, yGap, setNodes, setEdges]);
+    const { nodes: n, edges: e } = buildNodesAndEdges({
+      data,
+      xGap,
+      yGap,
+      fanByDepth,
+      fanByLeaves,
+      maxXGap,
+      maxVisibleDepth,
+      maxVisibleNodes,
+      onChange: onChangeNode,
+      onDelete: onDeleteNode,
+      edgeStyle,
+    });
+    setNodes(n);
+    setEdges(e);
+  }, [
+    data,
+    xGap,
+    yGap,
+    fanByDepth,
+    fanByLeaves,
+    maxXGap,
+    maxVisibleDepth,
+    maxVisibleNodes,
+    onChangeNode,
+    onDeleteNode,
+    edgeStyle,
+    setNodes,
+    setEdges,
+  ]);
 
-  // Fit view when nodes change
+  // Fit after nodes settle
   useEffect(() => {
     if (nodes.length > 0) {
-      setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 100);
+      const id = setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 50);
+      return () => clearTimeout(id);
     }
   }, [nodes.length, fitView]);
 
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
+    (params) => setEdges((eds) => addEdge({ ...params, type: "bezier" }, eds)),
     [setEdges]
   );
 
@@ -200,14 +359,36 @@ function InnerCanvas({ data, xGap, yGap }) {
   );
 }
 
-// Main Component
+/* ============================ Public component ============================ */
 export default function MindMapFlowSimple({
   data,
-  xGap = 260,
-  yGap = 110,
+  // spacing
+  xGap = 240,             // base horizontal step
+  yGap = 120,             // default vertical gap between leaf rows (used if autoYGap=false)
+  // horizontal fan controls
+  fanByDepth = 0.5,       // ≥1 spreads more each depth
+  fanByLeaves = 0.5,      // ≥0 spreads bushier subtrees more
+  maxXGap,                // optional cap for very wide canvases
+  // visibility caps
+  maxVisibleDepth = Infinity,
+  maxVisibleNodes = Infinity,
+  // callbacks
+  onChangeNode,           // (id, {label}) => void
+  onDeleteNode,           // (id) => void
+  // style
   style,
+  // edge look
+  dashedEdges = true,
+
+  /* ------- NEW: auto-scale yGap by container height ------- */
+  autoYGap = true,        // set to true to compress/expand vertically with container
+  minYGap = 60,           // lower clamp so nodes never collapse into each other
+  maxYGap = 220,          // upper clamp to avoid huge empty gaps
+  yPadding = 40,          // vertical padding inside the container (top & bottom)
 }) {
   const containerRef = useRef(null);
+  const [containerHeight, setContainerHeight] = useState(0);
+  const [effectiveYGap, setEffectiveYGap] = useState(yGap);
 
   // Inject dark theme styles
   useEffect(() => {
@@ -220,16 +401,78 @@ export default function MindMapFlowSimple({
     }
     return () => {
       const existingStyle = document.getElementById(id);
-      if (existingStyle) {
-        existingStyle.remove();
-      }
+      if (existingStyle) existingStyle.remove();
     };
   }, []);
+
+  // Observe container size (height) to drive yGap
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const el = containerRef.current;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const h = entry.contentRect.height;
+        setContainerHeight(h);
+      }
+    });
+    ro.observe(el);
+    // initialize
+    setContainerHeight(el.getBoundingClientRect().height || 0);
+    return () => ro.disconnect();
+  }, []);
+
+  // Re-compute effective yGap when height or tree changes
+  useEffect(() => {
+    if (!autoYGap) {
+      setEffectiveYGap(yGap);
+      return;
+    }
+    const leaves = getVisibleLeafCount(data, maxVisibleDepth, maxVisibleNodes);
+    const rows = Math.max(1, leaves - 1); // number of gaps between leaf rows
+    const available = Math.max(0, containerHeight - 2 * yPadding);
+
+    // Avoid divide-by-zero; if only 1 leaf, just use available so layout stays centered
+    const rawGap = rows > 0 ? available / rows : available;
+    const clamped =
+      Math.max(minYGap, Math.min(maxYGap ?? rawGap, rawGap || minYGap));
+
+    setEffectiveYGap(Number.isFinite(clamped) ? clamped : yGap);
+  }, [
+    autoYGap,
+    yGap,
+    data,
+    containerHeight,
+    yPadding,
+    minYGap,
+    maxYGap,
+    maxVisibleDepth,
+    maxVisibleNodes,
+  ]);
+
+  const edgeStyle = useMemo(
+    () => ({
+      strokeWidth: 1.5,
+      ...(dashedEdges ? { strokeDasharray: "4 4" } : {}),
+    }),
+    [dashedEdges]
+  );
 
   return (
     <div ref={containerRef} style={{ width: "100%", height: "100%", ...(style || {}) }}>
       <ReactFlowProvider>
-        <InnerCanvas data={data} xGap={xGap} yGap={yGap} />
+        <InnerCanvas
+          data={data}
+          xGap={xGap}
+          yGap={effectiveYGap}
+          fanByDepth={fanByDepth}
+          fanByLeaves={fanByLeaves}
+          maxXGap={maxXGap}
+          maxVisibleDepth={maxVisibleDepth}
+          maxVisibleNodes={maxVisibleNodes}
+          onChangeNode={onChangeNode}
+          onDeleteNode={onDeleteNode}
+          edgeStyle={edgeStyle}
+        />
       </ReactFlowProvider>
     </div>
   );

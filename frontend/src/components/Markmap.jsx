@@ -72,15 +72,9 @@ export default function Markmap({
       if (!svgEl) return;
 
       if (!mmRef.current) {
-        mmRef.current = MarkmapView.create(svgEl, { 
-          initialExpandLevel,
-          colorScheme: 'dark'
-        }, root);
+        mmRef.current = MarkmapView.create(svgEl, { initialExpandLevel }, root);
       } else {
-        mmRef.current.setOptions({ 
-          initialExpandLevel,
-          colorScheme: 'dark'
-        });
+        mmRef.current.setOptions({ initialExpandLevel });
         mmRef.current.setData(root);
         mmRef.current.fit();
       }
