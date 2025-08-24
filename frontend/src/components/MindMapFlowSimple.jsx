@@ -27,36 +27,25 @@ const darkThemeStyles = `
 
 /* ============================ Node UI ============================ */
 function NodeCard({ id, data, selected }) {
-  const [editing, setEditing] = useState(false);
-  const [temp, setTemp] = useState(data.label || "Untitled");
-
-  const handleDoubleClick = useCallback(() => setEditing(true), []);
-  const handleSubmit = useCallback(
-    (e) => {
-      e.preventDefault();
-      const cleaned = (temp || "").trim() || "Untitled";
-      data.onChange?.(id, { label: cleaned });
-      setEditing(false);
-    },
-    [id, temp, data]
-  );
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === "Escape") {
-        setTemp(data.label || "Untitled");
-        setEditing(false);
-      }
-    },
-    [data.label]
-  );
+  const level = data.highlightLevel ?? 0;
 
   return (
     <div
-      onDoubleClick={handleDoubleClick}
-      className={`rounded-2xl shadow-md border ${
-        selected ? "border-blue-500" : "border-zinc-300"
-      } bg-white text-zinc-900 min-w-[160px] max-w-[260px]`}
-      style={{ fontFamily: "Inter, ui-sans-serif, system-ui" }}
+      className={[
+        "rounded-2xl shadow-md border bg-white text-zinc-900 min-w-[160px] max-w-[260px]",
+        level === 2
+          ? "border-blue-500 ring-2 ring-blue-300"
+          : level === 1
+          ? "border-blue-300"
+          : "border-zinc-300",
+        selected ? "outline outline-1 outline-blue-400" : "",
+      ].join(" ")}
+      style={{
+        fontFamily: "Inter, ui-sans-serif, system-ui",
+        transition: "transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease",
+        transform: level > 0 ? "scale(1.02)" : "scale(1.0)",
+        opacity: data.dimmed ? 0.35 : 1,
+      }}
     >
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />
@@ -64,35 +53,13 @@ function NodeCard({ id, data, selected }) {
       <Handle type="source" position={Position.Bottom} />
 
       <div className="px-3 py-2 flex items-center gap-2">
-        {!editing ? (
-          <>
-            <div className="font-medium leading-tight truncate flex-1" title={data.label}>
-              {data.label || "Untitled"}
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                data.onDelete?.(id);
-              }}
-              className="text-zinc-500 hover:text-red-600"
-              title="Delete"
-            >
-              🗑️
-            </button>
-          </>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex items-center gap-2 w-full">
-            <input
-              type="text"
-              value={temp}
-              onChange={(e) => setTemp(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="text-sm border-0 outline-0 bg-transparent flex-1"
-              autoFocus
-              onBlur={handleSubmit}
-            />
-          </form>
-        )}
+        <div
+          className="font-medium leading-tight truncate flex-1"
+          title={data.label}
+          style={{ color: level > 0 ? "#0b63f3" : "#111827" }}
+        >
+          {data.label || "Untitled"}
+        </div>
       </div>
     </div>
   );
@@ -194,7 +161,7 @@ function toReactFlow(root, onChange, onDelete, edgeStyle) {
         id: `edge-${n.id}-${c.id}`,
         source: n.id,
         target: c.id,
-        type: "bezier",
+        type: "bezier", // FIX: use built-in type
         animated: false,
         style: edgeStyle,
       });
@@ -284,7 +251,32 @@ function InnerCanvas({
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const { fitView } = useReactFlow();
 
-  // Rebuild when inputs change
+  // Build adjacency (children map) from edges for subtree traversal
+  const childrenMap = useMemo(() => {
+    const map = new Map();
+    for (const e of edges) {
+      if (!map.has(e.source)) map.set(e.source, []);
+      map.get(e.source).push(e.target);
+    }
+    return map;
+  }, [edges]);
+
+  const [selectedRootId, setSelectedRootId] = useState(null);
+
+  // Compute descendant set from selected root
+  const highlightedIds = useMemo(() => {
+    if (!selectedRootId) return new Set();
+    const set = new Set([selectedRootId]);
+    const q = [selectedRootId];
+    while (q.length) {
+      const cur = q.shift();
+      const kids = childrenMap.get(cur) || [];
+      for (const k of kids) if (!set.has(k)) { set.add(k); q.push(k); }
+    }
+    return set;
+  }, [selectedRootId, childrenMap]);
+
+  // Rebuild when inputs change (NOT dependent on nodes/edges themselves)
   useEffect(() => {
     const { nodes: n, edges: e } = buildNodesAndEdges({
       data,
@@ -317,6 +309,104 @@ function InnerCanvas({
     setEdges,
   ]);
 
+  // Only update if something actually changes (prevents infinite loops)
+  function updateHighlightStyles() {
+    if (!selectedRootId) return false;
+
+    let nodesChanged = false;
+    setNodes((prev) => {
+      const next = prev.map((n) => {
+        const inSet = highlightedIds.has(n.id);
+        const level = n.id === selectedRootId ? 2 : inSet ? 1 : 0;
+        const dimmed = level === 0;
+
+        const prevLevel = n.data?.highlightLevel ?? 0;
+        const prevDimmed = n.data?.dimmed ?? false;
+
+        if (prevLevel !== level || prevDimmed !== (selectedRootId ? dimmed : false)) {
+          nodesChanged = true;
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              highlightLevel: level,
+              dimmed: dimmed,
+            },
+          };
+        }
+        return n;
+      });
+      return nodesChanged ? next : prev;
+    });
+
+    let edgesChanged = false;
+    setEdges((prev) => {
+      const next = prev.map((e) => {
+        const onPath = highlightedIds.has(e.source) && highlightedIds.has(e.target);
+        const targetOpacity = onPath ? 1 : 0.2;
+        const targetWidth = onPath ? 2.5 : (e.style?.strokeWidth ?? 1.5);
+
+        const prevOpacity = e.style?.opacity ?? 1;
+        const prevWidth = e.style?.strokeWidth ?? 1.5;
+
+        if (prevOpacity !== targetOpacity || prevWidth !== targetWidth) {
+          edgesChanged = true;
+          return {
+            ...e,
+            style: {
+              ...e.style,
+              opacity: targetOpacity,
+              strokeWidth: targetWidth,
+            },
+          };
+        }
+        return e;
+      });
+      return edgesChanged ? next : prev;
+    });
+
+    return nodesChanged || edgesChanged;
+  }
+
+  useEffect(() => {
+    if (!selectedRootId) {
+      // If clearing selection, restore original styles only if needed
+      let anyChanged = false;
+      setNodes((prev) => {
+        const next = prev.map((n) => {
+          const hl = n.data?.highlightLevel ?? 0;
+          const dm = n.data?.dimmed ?? false;
+          if (hl !== 0 || dm !== false) {
+            anyChanged = true;
+            return { ...n, data: { ...n.data, highlightLevel: 0, dimmed: false } };
+          }
+          return n;
+        });
+        return anyChanged ? next : prev;
+      });
+      let edgesChanged = false;
+      setEdges((prev) => {
+        const next = prev.map((e) => {
+          const op = e.style?.opacity ?? 1;
+          const sw = e.style?.strokeWidth ?? 1.5;
+          if (op !== 1 || sw !== (e.style?.strokeWidth ?? 1.5)) {
+            edgesChanged = true;
+            return {
+              ...e,
+              style: { ...e.style, opacity: 1, strokeWidth: e.style?.strokeWidth ?? 1.5 },
+            };
+          }
+          return e;
+        });
+        return edgesChanged ? next : prev;
+      });
+      return;
+    }
+
+    updateHighlightStyles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightedIds, selectedRootId]);
+
   // Fit after nodes settle
   useEffect(() => {
     if (nodes.length > 0) {
@@ -326,11 +416,20 @@ function InnerCanvas({
   }, [nodes.length, fitView]);
 
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge({ ...params, type: "bezier" }, eds)),
+    (params) =>
+      setEdges((eds) =>
+        addEdge({ ...params, type: "bezier" }, eds) // keep consistent type
+      ),
     [setEdges]
   );
 
   const nodeTypes = useMemo(() => ({ card: NodeCard }), []);
+
+  // Click handlers
+  const onNodeClick = useCallback((_, node) => {
+    setSelectedRootId((curr) => (curr === node.id ? null : node.id));
+  }, []);
+  const onPaneClick = useCallback(() => setSelectedRootId(null), []);
 
   return (
     <ReactFlow
@@ -339,6 +438,8 @@ function InnerCanvas({
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
+      onNodeClick={onNodeClick}
+      onPaneClick={onPaneClick}
       nodeTypes={nodeTypes}
       fitView
       fitViewOptions={{ padding: 0.2 }}
@@ -354,6 +455,15 @@ function InnerCanvas({
         >
           Fit View
         </button>
+        {/* Show ‘Clear’ only when a root is selected */}
+        {selectedRootId && (
+          <button
+            onClick={() => setSelectedRootId(null)}
+            className="ml-2 px-3 py-1 border border-gray-600 rounded bg-gray-800 text-white hover:bg-gray-700"
+          >
+            Clear Highlight
+          </button>
+        )}
       </Panel>
     </ReactFlow>
   );
@@ -363,34 +473,34 @@ function InnerCanvas({
 export default function MindMapFlowSimple({
   data,
   // spacing
-  xGap = 240,             // base horizontal step
-  yGap = 120,             // default vertical gap between leaf rows (used if autoYGap=false)
+  xGap = 240,
+  yGap = 120,
   // horizontal fan controls
-  fanByDepth = 0.5,       // ≥1 spreads more each depth
-  fanByLeaves = 0.5,      // ≥0 spreads bushier subtrees more
-  maxXGap,                // optional cap for very wide canvases
+  fanByDepth = 0.5,
+  fanByLeaves = 0.5,
+  maxXGap,
   // visibility caps
   maxVisibleDepth = Infinity,
   maxVisibleNodes = Infinity,
   // callbacks
   onChangeNode,           // (id, {label}) => void
-  onDeleteNode,           // (id) => void
+  onDeleteNode,           // kept for compatibility
   // style
   style,
   // edge look
   dashedEdges = true,
 
-  /* ------- NEW: auto-scale yGap by container height ------- */
-  autoYGap = true,        // set to true to compress/expand vertically with container
-  minYGap = 60,           // lower clamp so nodes never collapse into each other
-  maxYGap = 220,          // upper clamp to avoid huge empty gaps
-  yPadding = 40,          // vertical padding inside the container (top & bottom)
+  /* ------- Auto-scale yGap by container height ------- */
+  autoYGap = true,
+  minYGap = 60,
+  maxYGap = 220,
+  yPadding = 40,
 }) {
   const containerRef = useRef(null);
   const [containerHeight, setContainerHeight] = useState(0);
   const [effectiveYGap, setEffectiveYGap] = useState(yGap);
 
-  // Inject dark theme styles
+  // Inject dark theme styles once
   useEffect(() => {
     const id = "reactflow-dark-theme";
     if (!document.getElementById(id)) {
@@ -405,37 +515,31 @@ export default function MindMapFlowSimple({
     };
   }, []);
 
-  // Observe container size (height) to drive yGap
+  // Observe container height (for auto yGap)
   useEffect(() => {
     if (!containerRef.current) return;
     const el = containerRef.current;
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const h = entry.contentRect.height;
-        setContainerHeight(h);
+        setContainerHeight(entry.contentRect.height);
       }
     });
     ro.observe(el);
-    // initialize
     setContainerHeight(el.getBoundingClientRect().height || 0);
     return () => ro.disconnect();
   }, []);
 
-  // Re-compute effective yGap when height or tree changes
+  // Compute effective yGap from height + leaves
   useEffect(() => {
     if (!autoYGap) {
       setEffectiveYGap(yGap);
       return;
     }
     const leaves = getVisibleLeafCount(data, maxVisibleDepth, maxVisibleNodes);
-    const rows = Math.max(1, leaves - 1); // number of gaps between leaf rows
+    const rows = Math.max(1, leaves - 1);
     const available = Math.max(0, containerHeight - 2 * yPadding);
-
-    // Avoid divide-by-zero; if only 1 leaf, just use available so layout stays centered
     const rawGap = rows > 0 ? available / rows : available;
-    const clamped =
-      Math.max(minYGap, Math.min(maxYGap ?? rawGap, rawGap || minYGap));
-
+    const clamped = Math.max(minYGap, Math.min(maxYGap ?? rawGap, rawGap || minYGap));
     setEffectiveYGap(Number.isFinite(clamped) ? clamped : yGap);
   }, [
     autoYGap,
