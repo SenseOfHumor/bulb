@@ -35,6 +35,18 @@ export default function Sidebar() {
     }
   }, [isExpanded, isMobile]);
 
+  // Prevent body scroll when mobile sidebar is open and keep background visible
+  useEffect(() => {
+    if (isMobile && isExpanded) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobile, isExpanded]);
+
   // Close sidebar on mobile when clicking a link
   const handleLinkClick = () => {
     if (isMobile) {
@@ -96,7 +108,7 @@ export default function Sidebar() {
       {/* Mobile Overlay */}
       {isMobile && isExpanded && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 z-40 md:hidden backdrop-blur-sm bg-white/10"
           onClick={() => setIsExpanded(false)}
         />
       )}
