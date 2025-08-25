@@ -56,21 +56,23 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen p-8 bg-black text-white text-left">
-      <div className="max-w-5xl mx-auto">
-        <header className="flex items-center justify-between mb-8">
-          <div>
+      <div className="max-w-5xl mx-auto pl-12 sm:pl-0">
+            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+          <div className="flex-shrink-0">
             <h1 className="text-3xl font-semibold">Dashboard</h1>
             <p className="text-sm text-gray-300">Your quick notes (temporary in-memory mock)</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={createNote}
-              className="inline-flex items-center gap-2 px-3 py-2 bg-white/6 hover:bg-white/10 rounded-md"
+              className="inline-flex items-center gap-2 px-2 py-1 sm:px-3 sm:py-2 bg-white/6 hover:bg-white/10 rounded-md whitespace-nowrap"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              <span className="text-sm">New Note</span>
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              <span className="text-sm hidden sm:inline">New Note</span>
             </button>
-            <UserButton />
+            <div className="flex items-center">
+              <UserButton />
+            </div>
           </div>
         </header>
 
